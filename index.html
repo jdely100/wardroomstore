@@ -114,7 +114,7 @@
     </div>
   </div>
 
-  <!-- Alpha Tracking Modal with Custom Screen Keypad -->
+  <!-- Alpha Tracking Modal -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
       <h3>Track Transaction</h3>
@@ -331,12 +331,12 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "Verifying...";
 
-      // Contact Google Sheets to verify authorization
+      // STRICT FRONT-END CHECK: Querying via standard GET request architecture
       fetch(`${googleScriptUrl}?checkAlpha=${alphaNumber}`)
         .then(response => response.json())
         .then(res => {
-          if (res.authorized) {
-            // Authorized! Proceed with transaction processing
+          if (res && res.authorized === true) {
+            // MATCH FOUND! Execute checkout payload sequences
             const finalTotal = document.getElementById('total').innerText;
             const receiptEntry = {
               timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
@@ -345,11 +345,9 @@
               grandTotal: finalTotal
             };
 
-            // Log locally for manager log visualization
             salesHistory.push(receiptEntry);
             localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-            // Write row to renamed tab: "Transaction History"
             fetch(googleScriptUrl, {
               method: 'POST',
               mode: 'no-cors',
@@ -362,7 +360,9 @@
             updateUI();
             closePaymentModal();
           } else {
+            // FAILURE: No match in Database tab. Abort everything and prompt user
             showToastNotification("Declined: User ID not authorized", true);
+            document.getElementById('alpha-field').value = ''; // Clear pad input
           }
         })
         .catch(err => {
