@@ -108,7 +108,6 @@
     
     <div class="totals-box">
       <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
-      <div class="total-row"><span>Tax (8%)</span><span id="tax">$0.00</span></div>
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
     </div>
@@ -175,17 +174,14 @@
     let products = []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
-    
-    // NEW: Local array to hold cached authorized users list
     let authorizedUsers = []; 
 
     function initApp() {
       fetchCloudInventory();
-      downloadAuthorizedUsers(); // Pre-cache authorized database on launch
+      downloadAuthorizedUsers(); 
       updateUI();
     }
 
-    // 1. Fetch products from Sheet
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
       const catalogEl = document.getElementById('catalog');
@@ -239,12 +235,7 @@
         });
     }
 
-    // 2. NEW: Pre-download and cache authorized user database in iPad memory
     function downloadAuthorizedUsers() {
-      // Query the Google Apps Script checkAlpha parameter with an empty string
-      // This falls through to doGet logic returning the authorization state, but we've configured
-      // the apps script GET checks to return authorization queries. To pull the WHOLE list, 
-      // we pass "checkAlpha=DOWNLOAD_MASTER_CACHE"
       fetch(`${googleScriptUrl}?checkAlpha=DOWNLOAD_MASTER_CACHE`)
         .then(response => response.json())
         .then(data => {
@@ -287,7 +278,6 @@
       if (cart.length === 0) {
         cartListEl.innerHTML = '<p style="color: #86868b; text-align: center; margin-top: 40px;">No items scanned yet.</p>';
         document.getElementById('subtotal').innerText = '$0.00';
-        document.getElementById('tax').innerText = '$0.00';
         document.getElementById('total').innerText = '$0.00';
         return;
       }
@@ -304,11 +294,8 @@
         cartListEl.appendChild(row);
       });
 
-      const tax = subtotal * 0.08;
-      const total = subtotal + tax;
       document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-      document.getElementById('tax').innerText = `$${tax.toFixed(2)}`;
-      document.getElementById('total').innerText = `$${total.toFixed(2)}`;
+      document.getElementById('total').innerText = `$${subtotal.toFixed(2)}`; // Total matches subtotal directly (No Tax)
     }
 
     function pressKey(value) {
@@ -349,12 +336,10 @@
       }, 3000);
     }
 
-    // UPDATED: Completely instant validation routine
     function submitPayment() {
       const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
       if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
-      // INSTANT LOCAL MEMORY CHECK (Bypasses slow API fetch wait!)
       const isAuthorized = authorizedUsers.indexOf(alphaNumber) !== -1;
 
       if (isAuthorized) {
@@ -366,11 +351,9 @@
           grandTotal: finalTotal
         };
 
-        // Save locally to display list
         salesHistory.push(receiptEntry);
         localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-        // Append to "Transaction History" asynchronously in background
         fetch(googleScriptUrl, {
           method: 'POST',
           mode: 'no-cors',
@@ -383,9 +366,8 @@
         updateUI();
         closePaymentModal();
       } else {
-        // Validation fails instantly!
+        // FIX: Kept value intact in field so user can adjust what they typed wrong
         showToastNotification("Declined: User ID not authorized", true);
-        document.getElementById('alpha-field').value = ''; 
       }
     }
 
