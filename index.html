@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Self Checkout Kiosk</title>
   <link rel="manifest" href="./manifest.json">
+  <!-- Include the robust web-barcode scanner library engine -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     :root {
       --primary: #0071e3;
@@ -37,41 +39,23 @@
     .product-price { color: var(--primary); font-weight: bold; margin-top: 8px; }
     .receipt-items { flex: 1; overflow-y: auto; padding: 24px; }
     
-    /* Cart Item Layout with Interactive Controls */
     .cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 0;
-      border-bottom: 1px solid #e5e5ea;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0; border-bottom: 1px solid #e5e5ea;
     }
     
-    .cart-item-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 6px;
-    }
+    .cart-item-controls { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
 
     .qty-btn {
-      background: #e5e5ea;
-      color: var(--text);
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      font-size: 16px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      background: #e5e5ea; color: var(--text); border: none; border-radius: 50%;
+      width: 28px; height: 28px; font-size: 16px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
     .qty-btn:active { background: #d1d1d6; }
 
     .totals-box { padding: 24px; background: var(--bg); border-top: 1px solid #d2d2d7; }
     .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; border-top: none; }
+    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; }
     
     .btn-pay {
       display: block; width: 100%; background: var(--success); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 16px;
@@ -93,6 +77,15 @@
     .btn-modal { flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; }
     .btn-cancel { background: #e5e5ea; color: var(--text); }
     .btn-submit { background: var(--primary); color: white; }
+
+    /* Barcode Scanner Modal View Styling */
+    .scanner-btn {
+      background: var(--primary); color: white; border: none; border-radius: 8px;
+      padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .scanner-box { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 24px; }
+    #reader { width: 100%; border-radius: 16px; overflow: hidden; background: #000; }
 
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f5f5f7; z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 20px; border-bottom: 1px solid #d2d2d7; display: flex; justify-content: space-between; align-items: center; }
@@ -127,7 +120,13 @@
   <div class="catalog-side">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
       <h2 style="margin:0;">Add Items to Cart</h2>
-      <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <!-- Trigger Button to Open Camera Overlay -->
+        <button class="scanner-btn" onclick="openScannerModal()">
+          <span style="font-size:16px;">📷</span> Scan Barcode
+        </button>
+        <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
+      </div>
     </div>
     <div class="grid" id="catalog"></div>
   </div>
@@ -139,9 +138,17 @@
     </div>
     
     <div class="totals-box">
-      <!-- Subtotal row completely removed here -->
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
+    </div>
+  </div>
+
+  <!-- Dynamic Camera Scanner Overlay View -->
+  <div class="modal-overlay" id="scanner-modal">
+    <div class="modal-box scanner-box">
+      <h3 style="margin-top:0;">Position Barcode in Camera View</h3>
+      <div id="reader"></div>
+      <button class="btn-modal btn-cancel" style="margin-top:20px; width:100%;" onclick="closeScannerModal()">Close Camera</button>
     </div>
   </div>
 
@@ -207,6 +214,7 @@
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
     let authorizedUsers = {}; 
+    let html5QrcodeScanner = null; // Camera handler variable holder
 
     function initApp() {
       fetchCloudInventory();
@@ -305,14 +313,12 @@
       updateUI();
     }
 
-    // Direct Quantity Alteration Handlers
     function adjustQuantity(productId, delta) {
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
 
       targetItem.quantity += delta;
       
-      // If balance drops to 0 or below, scrub the row completely
       if (targetItem.quantity <= 0) {
         cart = cart.filter(item => item.id !== productId);
       }
@@ -353,6 +359,45 @@
       document.getElementById('total').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
+    // INTERACTIVE CAMERA SCANNER CONTROL METHODS
+    function openScannerModal() {
+      document.getElementById('scanner-modal').style.display = 'flex';
+      
+      // Initialize library configuration targeting rear camera and setting resolution framework
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      
+      html5QrcodeScanner.start(
+        { facingMode: "environment" }, // Forces rear-facing camera configuration
+        {
+          fps: 10,                 // Scans 10 frames per second
+          qrbox: { width: 250, height: 150 } // Bounding layout targeting narrow retail product codes
+        },
+        (decodedText, decodedResult) => {
+          // SUCCESS EVENT HANDLER: Triggered instantly on detection matching
+          showToastNotification(`Barcode Scanned: ${decodedText}`, false);
+          
+          // Sound vibration or feedback haptic indicator cue can go here!
+          closeScannerModal();
+        },
+        (errorMessage) => {
+          // Silent catch to suppress loop frame evaluation scanning trace logs
+        }
+      ).catch(err => {
+        console.error("Camera permissions initialization breakdown:", err);
+        alert("Failed to initialize camera. Ensure permissions are allowed in iPad Settings.");
+        closeScannerModal();
+      });
+    }
+
+    function closeScannerModal() {
+      document.getElementById('scanner-modal').style.display = 'none';
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+          html5QrcodeScanner = null;
+        }).catch(err => console.error("Error shutting camera engine pipeline down:", err));
+      }
+    }
+
     function pressKey(value) {
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
@@ -374,21 +419,6 @@
     function closePaymentModal() { 
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
-    }
-
-    function showToastNotification(message, isError = false) {
-      const toast = document.getElementById('toast-banner');
-      toast.innerText = message;
-      if (isError) {
-        toast.classList.add('toast-danger');
-      } else {
-        toast.classList.remove('toast-danger');
-      }
-      toast.classList.add('show');
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
     }
 
     function submitPayment() {
