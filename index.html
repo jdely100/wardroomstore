@@ -31,19 +31,15 @@
       position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10;
     }
 
-    /* Core Layout Balance Blocks */
     .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; }
     .receipt-side { 
       flex: 0.9; background: var(--panel-bg); display: flex; flex-direction: column; height: 100%; min-width: 340px; 
       box-shadow: -4px 0 24px rgba(15, 23, 42, 0.04); border-left: 1px solid var(--border); z-index: 2;
     }
     
-    .section-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
-    }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
-    /* Premium Category Bar Slider */
     .category-bar {
       display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
@@ -61,10 +57,9 @@
       box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
     }
 
-    /* Enterprise Grid Spec */
     .grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
       gap: 20px; 
     }
     
@@ -82,19 +77,18 @@
     .product-card:active { transform: translateY(0) scale(0.98); }
     
     .product-img {
-      width: 90px; height: 90px; object-fit: cover; border-radius: 12px;
-      margin-bottom: 12px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.02);
+      width: 80px; height: 80px; object-fit: cover; border-radius: 8px;
+      margin-bottom: 10px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.02);
     }
-    .product-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
-    .product-price { color: var(--accent); font-weight: 700; font-size: 15px; }
+    .product-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .product-price { color: var(--accent); font-weight: bold; font-size: 15px; }
     
-    /* Cart Area Refinements */
     .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); }
     .receipt-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
     
     .cart-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 0; border-bottom: 1px solid var(--border);
+      padding: 14px 0; border-bottom: 1px solid var(--border);
     }
     .cart-item-title { font-weight: 600; font-size: 15px; color: var(--text); margin-bottom: 4px; }
     .cart-item-controls { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
@@ -103,15 +97,11 @@
       background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 50%;
       width: 32px; height: 32px; font-size: 16px; font-weight: 600;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: all 0.15s ease;
     }
-    .qty-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
-    .qty-btn:active { background: #cbd5e1; }
     
     .qty-display { font-weight: 700; min-width: 20px; text-align: center; font-size: 14px; color: var(--text); }
     .cart-item-price { font-weight: 700; font-size: 16px; color: var(--text); text-align: right; }
 
-    /* Totals Summary Card block */
     .totals-box { 
       padding: 24px; background: #f8fafc; border-top: 1px solid var(--border);
       margin: 16px; border-radius: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
@@ -128,7 +118,6 @@
     .btn-pay:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
     .btn-pay:active { transform: translateY(0); }
 
-    /* Premium Modal Engine Styles */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
       display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
@@ -145,31 +134,20 @@
       width: 100%; padding: 16px; font-size: 28px; font-weight: 800; border: 2px solid var(--border); 
       border-radius: 16px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
       background: #f8fafc; color: var(--primary); letter-spacing: 2px;
-      transition: border-color 0.2s ease;
     }
-    .alpha-input:focus { border-color: var(--accent); outline: none; }
 
-    /* Keypad Overhaul */
     .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
     .key-btn { 
       background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 16px; 
       padding: 18px; font-size: 22px; font-weight: 700; cursor: pointer;
-      transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
-    .key-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
-    .key-btn:active { background: #cbd5e1; transform: scale(0.96); }
     .key-clear { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
-    .key-clear:hover { background: #fee2e2; }
-    .key-clear:active { background: #fca5a5; }
 
     .modal-actions { display: flex; gap: 12px; }
-    .btn-modal { flex: 1; padding: 16px; font-size: 15px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; transition: all 0.15s ease; }
+    .btn-modal { flex: 1; padding: 16px; font-size: 15px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
     .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
-    .btn-cancel:hover { background: #e2e8f0; color: var(--text); }
     .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
-    .btn-submit:hover { background: #1e293b; }
 
-    /* Modernized Indicator Pin */
     .sync-status { 
       font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px;
       display: inline-flex; align-items: center; gap: 6px;
@@ -181,10 +159,8 @@
     .offline-blocker { 
       grid-column: 1 / -1; text-align: center; padding: 48px; background: white; 
       border-radius: 24px; border: 1px solid var(--border); margin-top: 20px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
     }
 
-    /* Premium Toast Popups */
     .toast-notification {
       position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
       background: var(--primary); color: white; padding: 16px 32px; border-radius: 40px;
@@ -192,14 +168,13 @@
       z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
     }
     .toast-notification.show { top: 32px; }
-    .toast-danger { background: var(--danger); box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.25); }
+    .toast-danger { background: var(--danger); }
 
-    /* Administrative Dashboard Overlay Panel */
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .admin-content { flex: 1; display: flex; overflow: hidden; padding: 32px; gap: 32px; box-sizing: border-box; }
-    .admin-column { flex: 1; background: white; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); }
-    .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.4; }
+    .admin-column { flex: 1; background: white; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--border); }
+    .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
   </style>
 </head>
 <body>
@@ -208,40 +183,31 @@
 
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
-  <!-- Storefront Grid Layout -->
   <div class="catalog-side">
     <div class="section-header">
       <h2>Add Items to Cart</h2>
       <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
     </div>
-    
-    <!-- Dynamic Category Filter Track -->
     <div class="category-bar" id="category-tabs-container"></div>
-    
     <div class="grid" id="catalog"></div>
   </div>
 
-  <!-- Checkout Sidebar Display -->
   <div class="receipt-side">
     <div class="cart-header"><h2>Your Cart</h2></div>
     <div class="receipt-items" id="cart-list">
       <p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>
     </div>
-    
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e2e8f0; color:var(--text-muted); cursor:not-allowed; box-shadow:none;">Initializing...</button>
     </div>
   </div>
 
-  <!-- Keypad Identity Validation Pop-Up -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
       <h3>Alpha Number</h3>
       <p>Enter your Alpha Number below to authorize checkout.</p>
-      
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
-      
       <div class="keypad-grid">
         <button class="key-btn" onclick="pressKey('1')">1</button>
         <button class="key-btn" onclick="pressKey('2')">2</button>
@@ -256,7 +222,6 @@
         <button class="key-btn" onclick="pressKey('0')">0</button>
         <button class="key-btn" onclick="pressKey('BACKSPACE')">⌫</button>
       </div>
-
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
         <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Confirm & Pay</button>
@@ -264,7 +229,6 @@
     </div>
   </div>
 
-  <!-- Master Management Overlay Panel -->
   <div class="admin-panel" id="admin-panel">
     <div class="admin-header">
       <h2>Manager Audit System</h2>
@@ -273,7 +237,6 @@
     <div class="admin-content">
       <div class="admin-column">
         <h3 style="margin:0 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
-        <p style="color:var(--text-muted); line-height: 1.5; font-size:14px; margin:0 0 20px 0;">This terminal pulls pricing matrices dynamically from your cloud spreadsheet infrastructure sheets.</p>
         <button class="btn-modal btn-submit" style="width:100%; margin-bottom: 12px; padding:14px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
         <button class="btn-modal btn-submit" style="width:100%; background: var(--accent); padding:14px;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
         <h3 style="margin-top:32px; margin-bottom:12px; font-size:18px;">Active Storefront Directory</h3>
@@ -314,9 +277,13 @@
       catalogEl.innerHTML = '';
 
       fetch(googleScriptUrl)
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) throw new Error("HTTP error " + response.status);
+          return response.json();
+        })
         .then(data => {
-          if (data && data.length > 0 && !data.error) {
+          // FIXED: Hardened payload validation safeguards 
+          if (data && Array.isArray(data) && data.length > 0) {
             products = data;
             indicator.className = 'sync-status sync-success';
             indicator.innerText = '● Connected';
@@ -330,31 +297,27 @@
             renderCategoryTabs();
             renderCatalog();
           } else {
-            throw new Error("Payload validation breach.");
+            throw new Error("Invalid or empty data format received.");
           }
         })
         .catch(err => {
-          console.error("Cloud synchronization broken.", err);
-          products = [];
+          console.error("Connection failed:", err);
           indicator.className = 'sync-status sync-error';
           indicator.innerText = '● Terminal Offline';
 
           catalogEl.innerHTML = `
             <div class="offline-blocker">
               <h3 style="color:var(--danger); margin-top:0; font-size:20px;">Database Connection Failed</h3>
-              <p style="color:var(--text-muted); margin-bottom:24px; font-size:15px; line-height:1.4;">The checkout architecture requires network initialization access to cache row assets.</p>
-              <button class="btn-modal btn-submit" style="max-width:220px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection Reference</button>
+              <p style="color:var(--text-muted); margin-bottom:24px; font-size:15px; line-height:1.4;">The checkout architecture could not sync with your Google Sheet. Verify your sheet tabs and deploy permissions.</p>
+              <button class="btn-modal btn-submit" style="max-width:220px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection</button>
             </div>
           `;
 
           payBtn.disabled = true;
           payBtn.style.background = '#e2e8f0';
-          payBtn.style.color = var(--text-muted);
+          payBtn.style.color = 'var(--text-muted)';
           payBtn.style.cursor = 'not-allowed';
           payBtn.innerText = 'Sync Required';
-          
-          cart = [];
-          updateUI();
         });
     }
 
@@ -364,19 +327,19 @@
         .then(data => {
           if (data && data.masterList) {
             authorizedUsers = data.masterList;
-            console.log("Profiles cached smoothly.");
           }
         })
-        .catch(err => {
-          console.error("User indexing stream dropped.", err);
-        });
+        .catch(err => console.error("User sheet error:", err));
     }
 
     function renderCategoryTabs() {
       const container = document.getElementById('category-tabs-container');
+      if (!container) return;
       container.innerHTML = '';
       
-      const uniqueCategories = ["ALL", ...new Set(products.map(p => p.category))];
+      // FIXED: Safeguard filter build layout loops against row entry typos
+      const validCategories = products.filter(p => p && p.category).map(p => p.category);
+      const uniqueCategories = ["ALL", ...new Set(validCategories)];
       
       uniqueCategories.forEach(cat => {
         const btn = document.createElement('button');
@@ -393,6 +356,7 @@
 
     function renderCatalog() {
       const catalogEl = document.getElementById('catalog');
+      if (!catalogEl) return;
       catalogEl.innerHTML = '';
       
       const filteredProducts = activeCategoryFilter === "ALL" 
@@ -400,6 +364,8 @@
         : products.filter(p => p.category === activeCategoryFilter);
       
       filteredProducts.forEach(product => {
+        if (!product || !product.name) return; // Skip broken entities smoothly
+        
         const card = document.createElement('div');
         card.className = 'product-card';
         
@@ -411,7 +377,7 @@
         card.innerHTML = `
           ${imgHtml}
           <div class="product-name">${product.name}</div>
-          <div class="product-price">$${product.price.toFixed(2)}</div>
+          <div class="product-price">$${(product.price || 0).toFixed(2)}</div>
         `;
         
         card.onclick = () => addToCart(product);
@@ -420,7 +386,6 @@
     }
 
     function addToCart(product) {
-      if (products.length === 0) return;
       const existingItem = cart.find(item => item.id === product.id);
       if (existingItem) {
         existingItem.quantity += 1;
@@ -433,9 +398,7 @@
     function adjustQuantity(productId, delta) {
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
-
       targetItem.quantity += delta;
-      
       if (targetItem.quantity <= 0) {
         cart = cart.filter(item => item.id !== productId);
       }
@@ -444,6 +407,8 @@
 
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
+      if (!cartListEl) return;
+      
       if (cart.length === 0) {
         cartListEl.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>';
         document.getElementById('total').innerText = '$0.00';
@@ -483,14 +448,12 @@
       } else if (value === 'BACKSPACE') {
         field.value = field.value.slice(0, -1);
       } else {
-        if (field.value.length < 10) {
-          field.value += value;
-        }
+        if (field.value.length < 10) field.value += value;
       }
     }
 
     function openPaymentModal() { 
-      if (cart.length === 0) return alert('Your cart is empty!'); 
+      if (cart.length === 0) return; 
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
@@ -502,18 +465,13 @@
     function showToastNotification(message, isError = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
-      if (isError) {
-        toast.className = 'toast-notification show toast-danger';
-      } else {
-        toast.className = 'toast-notification show';
-      }
-      
+      toast.className = isError ? 'toast-notification show toast-danger' : 'toast-notification show';
       setTimeout(() => { toast.className = 'toast-notification'; }, 3000);
     }
 
     function submitPayment() {
       const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
-      if (!alphaNumber) return alert('Verification parameter required.');
+      if (!alphaNumber) return alert('Input ID parameter.');
 
       const userProfile = authorizedUsers[alphaNumber];
 
@@ -537,8 +495,7 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        showToastNotification(`Welcome, ${userProfile.firstName}! Order processed.`, false);
-        
+        showToastNotification(`Welcome, ${userProfile.firstName}! Checkout compiled.`, false);
         cart = [];
         updateUI();
         closePaymentModal();
@@ -547,13 +504,10 @@
       }
     }
 
-    // ADMINISTRATIVE ACCESS OVERLAYS
     const ADMIN_PASSWORD = "1234";
-
     function promptAdminPassword() {
-      const entry = prompt("Enter administrative system security code:");
-      if (entry === ADMIN_PASSWORD) { openAdminPanel(); } 
-      else if (entry !== null) { alert("Access denied. Invalid credentials."); }
+      const entry = prompt("Enter manager system profile access token:");
+      if (entry === ADMIN_PASSWORD) openAdminPanel();
     }
 
     function openAdminPanel() {
@@ -570,10 +524,6 @@
     function renderAdminInventory() {
       const listEl = document.getElementById('admin-inventory-list');
       listEl.innerHTML = '';
-      if (products.length === 0) {
-        listEl.innerHTML = '<p style="color:var(--danger)">Offline: Matrix database broken.</p>';
-        return;
-      }
       products.forEach((prod) => {
         const row = document.createElement('div');
         row.className = 'log-item';
@@ -584,15 +534,12 @@
 
     function renderAdminLogs() {
       const logsEl = document.getElementById('admin-logs-list');
-      if (salesHistory.length === 0) {
-        logsEl.innerHTML = '<p style="color:var(--text-muted)">No metrics recorded.</p>';
-        return;
-      }
+      if (salesHistory.length === 0) return;
       logsEl.innerHTML = '';
       [...salesHistory].reverse().forEach(log => {
         const item = document.createElement('div');
         item.className = 'log-item';
-        item.innerHTML = `<strong>[${log.timestamp}]</strong> - Account: <u>${log.userAlpha}</u><br>
+        item.innerHTML = `<strong>[${log.timestamp}]</strong> - ID: <u>${log.userAlpha}</u><br>
                           <small style="color:var(--text-muted)">${log.summary}</small><br>
                           <strong>Total Charged: ${log.grandTotal}</strong>`;
         logsEl.appendChild(item);
@@ -600,7 +547,7 @@
     }
 
     function clearLogs() {
-      if (confirm("Are you sure you want to permanently clear local history?")) {
+      if (confirm("Clear local device logs?")) {
         salesHistory = []; localStorage.removeItem('kiosk_history'); renderAdminLogs();
       }
     }
