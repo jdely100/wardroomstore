@@ -86,7 +86,6 @@
     }
     .scanner-box { width: 95%; max-width: 600px; background: white; padding: 20px; border-radius: 24px; }
     
-    /* Interactive viewport targeted wrapper */
     #interactive.viewport {
       width: 100%; height: 300px; border-radius: 16px; overflow: hidden; background: #000; position: relative;
     }
@@ -232,6 +231,22 @@
     let authorizedUsers = {}; 
     let isScanningActive = false;
 
+    // DIAGNOSTIC CORE: Built-in synthesis beep engine to provide physical validation
+    function playDiagnosticBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // 1200Hz retail scanner pitch
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1); // 100ms snap duration
+      } catch(e) { console.log("Audio contextual block bypassed."); }
+    }
+
     function initApp() {
       fetchCloudInventory();
       downloadAuthorizedUsers(); 
@@ -374,7 +389,6 @@
       document.getElementById('total').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
-    // ADVANCED QUAGGA HARDWARE ENHANCED CAMERA DETECTION CONTROLS
     function openScannerModal() {
       document.getElementById('scanner-modal').style.display = 'flex';
       isScanningActive = true;
@@ -387,7 +401,7 @@
           constraints: {
             width: 640,
             height: 480,
-            facingMode: "environment", // Rear camera default selection
+            facingMode: "environment", 
             aspectRatio: { min: 1, max: 2 }
           },
         },
@@ -396,7 +410,6 @@
           halfSample: true
         },
         numOfWorkers: 2,
-        // Listen exclusively to standard retail items
         decoder: {
           readers: ["upc_reader", "upc_e_reader", "ean_reader", "ean_8_reader"]
         },
@@ -408,21 +421,26 @@
           closeScannerModal();
           return;
         }
-        console.log("Quagga engine online.");
         Quagga.start();
       });
 
-      // Hook up detection analyzer listener loop
       Quagga.onDetected(handleProcessedBarcode);
     }
 
+    // DIAGNOSTICALLY MODIFIED EVENT HANDLER
     function handleProcessedBarcode(result) {
       if (!isScanningActive || !result.codeResult || !result.codeResult.code) return;
       
       const scannedCode = String(result.codeResult.code).trim();
-      isScanningActive = false; // Freeze lookups during cart insertion process
+      isScanningActive = false; // Freeze framing instantly
 
-      // Search downloaded matrix for barcode match row
+      // 1. Fire physical audio alert
+      playDiagnosticBeep();
+
+      // 2. Force alert pop-up window showing the literal decrypted string read
+      alert(`DIAGNOSTIC TEST SUCCESSFUL!\n\nCamera read barcode value: ${scannedCode}\n\nClick OK to see if it matches your Sheets inventory listing.`);
+
+      // 3. Proceed to see if it matches your sheet product data array columns
       const matchedProduct = products.find(p => String(p.barcode).trim() === scannedCode);
 
       if (matchedProduct) {
@@ -430,11 +448,8 @@
         showToastNotification(`Added: ${matchedProduct.name}`, false);
         closeScannerModal();
       } else {
-        // If it decodes something not in your sheets inventory, notify them but keep scanner open
-        showToastNotification(`Barcode [${scannedCode}] not in Inventory`, true);
-        
-        // Re-enable looking after a 2-second debounce buffer delay
-        setTimeout(() => { isScanningActive = true; }, 2000);
+        showToastNotification(`Barcode [${scannedCode}] not found in Spreadsheet rows`, true);
+        closeScannerModal(); // Close to return to layout views
       }
     }
 
@@ -444,7 +459,7 @@
       try {
         Quagga.offDetected(handleProcessedBarcode);
         Quagga.stop();
-      } catch(e) { console.log("Engine clean up catch executed safely."); }
+      } catch(e) {}
     }
 
     function pressKey(value) {
