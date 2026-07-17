@@ -17,6 +17,7 @@
       --border: #e2e8f0;
       --overlay: rgba(15, 23, 42, 0.6);
       --danger: #ef4444;
+      --warning: #f59e0b;
     }
     
     body {
@@ -181,6 +182,9 @@
     }
     .toast-notification.show { top: 40px; }
     .toast-danger { background: var(--danger); font-size: 16px; font-weight: 700; padding: 16px 32px; }
+    
+    /* NEW: Idle timeout reset warning banner styles */
+    .toast-warning { background: var(--warning); font-size: 18px; font-weight: 700; padding: 18px 36px; box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3); }
 
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -189,7 +193,7 @@
     .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
   </style>
 </head>
-<body>
+<body onclick="resetIdleTimeout()" ontouchstart="resetIdleTimeout()">
 
   <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
@@ -222,9 +226,7 @@
     <div class="modal-box" style="max-width: 460px;">
       <h3>Wardroom Spenders</h3>
       <p>Current top 5 account balances driving company support metrics.</p>
-      
       <div class="leaderboard-container" id="leaderboard-list-root"></div>
-      
       <button class="btn-modal btn-cancel" style="width:100%; margin-top:12px;" onclick="closeLeaderboardModal()">Close Leaderboard</button>
     </div>
   </div>
@@ -292,8 +294,101 @@
     let isTerminalOnline = true; 
     let isSyncingQueue = false;
 
+    // NEW: Global dynamic idle auto-timeout reference handles
+    let idleTrackerTimer = null;
+    let warningBannerTimer = null;
+
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    // NEW: Synthesized sound effects layout block
+    function playSoundEffect(type) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        if (type === 'click') {
+          // Sharp, short mechanical click sound
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        } 
+        else if (type === 'warning') {
+          // Double descending warning tone alert notice
+          const osc1 = audioCtx.createOscillator();
+          const gain1 = audioCtx.createGain();
+          osc1.type = 'triangle';
+          osc1.frequency.setValueAtTime(520, audioCtx.currentTime);
+          osc1.frequency.setValueAtTime(400, audioCtx.currentTime + 0.12);
+          gain1.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain1.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+          osc1.connect(gain1); gain1.connect(audioCtx.destination);
+          osc1.start(); osc1.stop(audioCtx.currentTime + 0.25);
+        }
+        else if (type === 'success') {
+          // Upbeat melodic structural 3-tone checkout arpeggio chime chime
+          const tones = [523.25, 659.25, 783.99]; // C5, E5, G5 arpeggio chord structures
+          tones.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.08));
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime + (idx * 0.08));
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.08) + 0.25);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + (idx * 0.08));
+            osc.stop(audioCtx.currentTime + (idx * 0.08) + 0.25);
+          });
+        }
+      } catch(e) { console.log('Audio Context muted via policy bindings.'); }
+    }
+
+    // NEW: Idle safety management state loop engines
+    function resetIdleTimeout() {
+      // Clear out active waiting processes safely
+      clearTimeout(idleTrackerTimer);
+      clearTimeout(warningBannerTimer);
+      
+      // Hide warning layout banner frame if currently active on screen views
+      const banner = document.getElementById('toast-banner');
+      if (banner && banner.classList.contains('toast-warning')) {
+        banner.className = 'toast-notification';
+      }
+
+      // If cart has active items, start an invisible 60-second idle tracker loop
+      if (cart.length > 0) {
+        idleTrackerTimer = setTimeout(() => {
+          triggerWarningTimeoutNotification();
+        }, 60000); // 60 Seconds baseline constraint
+      }
+    }
+
+    function triggerWarningTimeoutNotification() {
+      playSoundEffect('warning');
+      showToastNotification("Are you still checking out? Resetting soon...", false, true);
+      
+      // Grant user an extra 7-second grace buffer window to touch screen before cart wipe
+      warningBannerTimer = setTimeout(() => {
+        purgeCartDueToTimeout();
+      }, 7000);
+    }
+
+    function purgeCartDueToTimeout() {
+      cart = [];
+      updateUI();
+      closePaymentModal();
+      closeLeaderboardModal();
+      
+      const banner = document.getElementById('toast-banner');
+      if (banner) banner.className = 'toast-notification';
+      
+      showToastNotification("Cart cleared due to inactivity.", true);
     }
 
     function initApp() {
@@ -382,9 +477,9 @@
         .catch(err => console.log("User mapping locked."));
     }
 
-    // FIXED: Adjusted array parameter boundaries to restrict the output to the Top 5 Spenders
     function openLeaderboardModal() {
       triggerHapticPulse(15);
+      playSoundEffect('click');
       const root = document.getElementById('leaderboard-list-root');
       root.innerHTML = '';
 
@@ -399,7 +494,7 @@
         })
         .filter(u => u.balance > 0)
         .sort((a, b) => b.balance - a.balance)
-        .slice(0, 5); // FIXED: Isolated the top 5 array elements
+        .slice(0, 5);
 
       if (rankedUsers.length === 0) {
         root.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">No balances logged yet.</p>';
@@ -423,6 +518,7 @@
     }
 
     function closeLeaderboardModal() {
+      playSoundEffect('click');
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
 
@@ -488,6 +584,7 @@
         btn.innerText = cat;
         btn.onclick = () => {
           triggerHapticPulse(15); 
+          playSoundEffect('click');
           activeCategoryFilter = cat;
           renderCategoryTabs();
           renderCatalog();
@@ -524,6 +621,7 @@
         
         card.onclick = () => {
           triggerHapticPulse(15); 
+          playSoundEffect('click');
           addToCart(product);
         };
         catalogEl.appendChild(card);
@@ -538,10 +636,12 @@
         cart.push({ ...product, quantity: 1 });
       }
       updateUI();
+      resetIdleTimeout(); // Reset tracking loops safely on item injections
     }
 
     function adjustQuantity(productId, delta) {
       triggerHapticPulse(15); 
+      playSoundEffect('click');
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
       targetItem.quantity += delta;
@@ -549,6 +649,7 @@
         cart = cart.filter(item => item.id !== productId);
       }
       updateUI();
+      resetIdleTimeout(); // Reset timers on list changes
     }
 
     function updateUI() {
@@ -589,6 +690,7 @@
 
     function pressKey(value) {
       triggerHapticPulse(10); 
+      playSoundEffect('click');
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
         field.value = '';
@@ -597,25 +699,44 @@
       } else {
         if (field.value.length < 10) field.value += value;
       }
+      resetIdleTimeout(); // Lock activity loops on keypad interaction
     }
 
     function openPaymentModal() { 
       if (cart.length === 0) return; 
       triggerHapticPulse(15);
+      playSoundEffect('click');
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
     function closePaymentModal() { 
+      playSoundEffect('click');
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
     }
 
-    function showToastNotification(message, isError = false) {
+    // UPDATED: Fault tolerance tracks custom warning styling parameters smoothly
+    function showToastNotification(message, isError = false, isWarning = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
-      toast.className = isError ? 'toast-notification show toast-danger' : 'toast-notification show';
-      const visibilityDuration = isError ? 3000 : 5500; 
-      setTimeout(() => { toast.className = 'toast-notification'; }, visibilityDuration);
+      
+      if (isError) {
+        toast.className = 'toast-notification show toast-danger';
+      } else if (isWarning) {
+        toast.className = 'toast-notification show toast-warning';
+      } else {
+        toast.className = 'toast-notification show';
+      }
+      
+      // Warning banners remain explicitly managed by clear routines; standard popups fade normally
+      if (!isWarning) {
+        const visibilityDuration = isError ? 3000 : 5500; 
+        setTimeout(() => { 
+          if (toast.className === 'toast-notification show' || toast.className === 'toast-notification show toast-danger') {
+            toast.className = 'toast-notification'; 
+          }
+        }, visibilityDuration);
+      }
     }
 
     function submitPayment() {
@@ -625,6 +746,8 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
+        // FIXED: Fire premium synthesized success audio sequence
+        playSoundEffect('success');
         triggerHapticPulse([40, 40, 40]);
 
         const finalTotal = document.getElementById('total').innerText;
@@ -655,6 +778,10 @@
         updateUI();
         closePaymentModal();
         
+        // Clear active timeout loops completely upon successful authorization
+        clearTimeout(idleTrackerTimer);
+        clearTimeout(warningBannerTimer);
+
         const indicator = document.getElementById('sync-indicator');
         if (indicator && offlineQueue.length <= 1) {
           indicator.className = 'sync-status sync-success';
