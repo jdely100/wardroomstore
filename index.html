@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Self Checkout Kiosk</title>
   <link rel="manifest" href="./manifest.json">
-  
-  <!-- High-Performance Mobile Barcode Scanning Engine -->
-  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-  
   <style>
     :root {
       --primary: #0071e3;
@@ -41,6 +37,7 @@
     .product-price { color: var(--primary); font-weight: bold; margin-top: 8px; }
     .receipt-items { flex: 1; overflow-y: auto; padding: 24px; }
     
+    /* Interactive Cart Adjustments */
     .cart-item {
       display: flex; justify-content: space-between; align-items: center;
       padding: 14px 0; border-bottom: 1px solid #e5e5ea;
@@ -55,7 +52,7 @@
 
     .totals-box { padding: 24px; background: var(--bg); border-top: 1px solid #d2d2d7; }
     .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; }
+    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; border-top: none; }
     
     .btn-pay {
       display: block; width: 100%; background: var(--success); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 16px;
@@ -77,29 +74,6 @@
     .btn-modal { flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; }
     .btn-cancel { background: #e5e5ea; color: var(--text); }
     .btn-submit { background: var(--primary); color: white; }
-
-    /* Interactive Camera Module Styling */
-    .scanner-btn {
-      background: var(--primary); color: white; border: none; border-radius: 8px;
-      padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .scanner-box { width: 95%; max-width: 600px; background: white; padding: 20px; border-radius: 24px; }
-    
-    #interactive.viewport {
-      width: 100%; height: 300px; border-radius: 16px; overflow: hidden; background: #000; position: relative;
-    }
-    #interactive.viewport video {
-      width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;
-    }
-    #interactive.viewport canvas.drawingBuffer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
-    }
-
-    /* Red scanner laser overlay indicator guide line */
-    .laser-line {
-      position: absolute; top: 50%; left: 5%; width: 90%; height: 2px; background: rgba(255, 59, 48, 0.7); box-shadow: 0 0 8px #ff3b30; z-index: 10; pointer-events: none;
-    }
 
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f5f5f7; z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 20px; border-bottom: 1px solid #d2d2d7; display: flex; justify-content: space-between; align-items: center; }
@@ -134,12 +108,7 @@
   <div class="catalog-side">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
       <h2 style="margin:0;">Add Items to Cart</h2>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="scanner-btn" onclick="openScannerModal()">
-          <span style="font-size:16px;">📷</span> Scan Barcode
-        </button>
-        <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
-      </div>
+      <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
     </div>
     <div class="grid" id="catalog"></div>
   </div>
@@ -153,17 +122,6 @@
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
-    </div>
-  </div>
-
-  <!-- Quagga Live View Camera Overlay Modal -->
-  <div class="modal-overlay" id="scanner-modal">
-    <div class="modal-box scanner-box">
-      <h3 style="margin-top:0; margin-bottom:15px;">Position Barcode Flat</h3>
-      <div id="interactive" class="viewport">
-        <div class="laser-line"></div>
-      </div>
-      <button class="btn-modal btn-cancel" style="margin-top:20px; width:100%;" onclick="closeScannerModal()">Close Camera</button>
     </div>
   </div>
 
@@ -229,23 +187,6 @@
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
     let authorizedUsers = {}; 
-    let isScanningActive = false;
-
-    // DIAGNOSTIC CORE: Built-in synthesis beep engine to provide physical validation
-    function playDiagnosticBeep() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // 1200Hz retail scanner pitch
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.1); // 100ms snap duration
-      } catch(e) { console.log("Audio contextual block bypassed."); }
-    }
 
     function initApp() {
       fetchCloudInventory();
@@ -389,79 +330,6 @@
       document.getElementById('total').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
-    function openScannerModal() {
-      document.getElementById('scanner-modal').style.display = 'flex';
-      isScanningActive = true;
-
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#interactive'),
-          constraints: {
-            width: 640,
-            height: 480,
-            facingMode: "environment", 
-            aspectRatio: { min: 1, max: 2 }
-          },
-        },
-        locator: {
-          patchSize: "medium",
-          halfSample: true
-        },
-        numOfWorkers: 2,
-        decoder: {
-          readers: ["upc_reader", "upc_e_reader", "ean_reader", "ean_8_reader"]
-        },
-        locate: true
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          alert("Camera initialization failed: " + err);
-          closeScannerModal();
-          return;
-        }
-        Quagga.start();
-      });
-
-      Quagga.onDetected(handleProcessedBarcode);
-    }
-
-    // DIAGNOSTICALLY MODIFIED EVENT HANDLER
-    function handleProcessedBarcode(result) {
-      if (!isScanningActive || !result.codeResult || !result.codeResult.code) return;
-      
-      const scannedCode = String(result.codeResult.code).trim();
-      isScanningActive = false; // Freeze framing instantly
-
-      // 1. Fire physical audio alert
-      playDiagnosticBeep();
-
-      // 2. Force alert pop-up window showing the literal decrypted string read
-      alert(`DIAGNOSTIC TEST SUCCESSFUL!\n\nCamera read barcode value: ${scannedCode}\n\nClick OK to see if it matches your Sheets inventory listing.`);
-
-      // 3. Proceed to see if it matches your sheet product data array columns
-      const matchedProduct = products.find(p => String(p.barcode).trim() === scannedCode);
-
-      if (matchedProduct) {
-        addToCart(matchedProduct);
-        showToastNotification(`Added: ${matchedProduct.name}`, false);
-        closeScannerModal();
-      } else {
-        showToastNotification(`Barcode [${scannedCode}] not found in Spreadsheet rows`, true);
-        closeScannerModal(); // Close to return to layout views
-      }
-    }
-
-    function closeScannerModal() {
-      isScanningActive = false;
-      document.getElementById('scanner-modal').style.display = 'none';
-      try {
-        Quagga.offDetected(handleProcessedBarcode);
-        Quagga.stop();
-      } catch(e) {}
-    }
-
     function pressKey(value) {
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
@@ -483,6 +351,21 @@
     function closePaymentModal() { 
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
+    }
+
+    function showToastNotification(message, isError = false) {
+      const toast = document.getElementById('toast-banner');
+      toast.innerText = message;
+      if (isError) {
+        toast.classList.add('toast-danger');
+      } else {
+        toast.classList.remove('toast-danger');
+      }
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     }
 
     function submitPayment() {
