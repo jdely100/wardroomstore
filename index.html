@@ -299,75 +299,63 @@
       if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    // FIXED: Segmented sound wave generator mapping dedicated synthesizers to each unique user event
     function playSoundEffect(type) {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // 1. ADD ITEM FROM CATALOG CHANNELS
         if (type === 'add_item') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(1400, audioCtx.currentTime); // High-frequency tap snap
+          osc.frequency.setValueAtTime(1400, audioCtx.currentTime); 
           gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.04);
         }
-        
-        // 2. ADJUST LIST QUANTITIES (+ / -)
         else if (type === 'adjust_qty') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Distinct lower blip tone
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
           gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.06);
         }
-
-        // 3. KEYPAD ENTRY TAP (0-9)
         else if (type === 'keypad_tap') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(600, audioCtx.currentTime); // Mechanical touch feedback simulation
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
           gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
-
-        // 4. KEYPAD BACKSPACE SNAP
         else if (type === 'keypad_clear') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, audioCtx.currentTime); // Quick rasp snap notice
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime); 
           gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
           gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.08);
         }
-
-        // 5. MODAL CANCEL CLOSURES
         else if (type === 'cancel_dismiss') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-          osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.12); // Descending exit slide swoop
+          osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.12); 
           gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
           gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.12);
         }
-
-        // 6. LEADERBOARD DISPLAY SHIMMER CHORD
         else if (type === 'leaderboard_shimmer') {
-          const notes = [329.63, 392.00, 523.25, 659.25]; // Warm, airy chord structure notes
+          const notes = [329.63, 392.00, 523.25, 659.25]; 
           notes.forEach((freq, idx) => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -379,8 +367,6 @@
             osc.start(audioCtx.currentTime + (idx * 0.04)); osc.stop(audioCtx.currentTime + (idx * 0.04) + 0.4);
           });
         }
-
-        // 7. TIMEOUT INACTIVITY WARNING
         else if (type === 'warning') {
           const osc1 = audioCtx.createOscillator();
           const gain1 = audioCtx.createGain();
@@ -392,23 +378,18 @@
           osc1.connect(gain1); gain1.connect(audioCtx.destination);
           osc1.start(); osc1.stop(audioCtx.currentTime + 0.25);
         }
-
-        // 8. DENIAL ERROR DROP
         else if (type === 'error_thud') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(130, audioCtx.currentTime);
-          osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.3); // Low buzz drop profile
+          osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.3); 
           gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
           gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
           osc.connect(gain); gain.connect(audioCtx.destination);
           osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
-        
-        // 9. PREMIUM MULTI-STAGE SATISFYING PAYMENT CHIME
         else if (type === 'premium_checkout_success') {
-          // Stage A: Sharp high frequency crystal snap (simulating structural mechanism locks closing)
           const snapOsc = audioCtx.createOscillator();
           const snapGain = audioCtx.createGain();
           snapOsc.type = 'triangle';
@@ -418,19 +399,17 @@
           snapOsc.connect(snapGain); snapGain.connect(audioCtx.destination);
           snapOsc.start(); snapOsc.stop(audioCtx.currentTime + 0.05);
           
-          // Stage B: Smooth, rapid laser sweep upward (simulating electronic balance clearing pipelines)
           const sweepOsc = audioCtx.createOscillator();
           const sweepGain = audioCtx.createGain();
           sweepOsc.type = 'sine';
           sweepOsc.frequency.setValueAtTime(380, audioCtx.currentTime + 0.03);
-          sweepOsc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.22); // Elegant sweep arc
+          sweepOsc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.22); 
           sweepGain.gain.setValueAtTime(0.08, audioCtx.currentTime + 0.03);
           sweepGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
           sweepOsc.connect(sweepGain); sweepGain.connect(audioCtx.destination);
           sweepOsc.start(audioCtx.currentTime + 0.03); sweepOsc.stop(audioCtx.currentTime + 0.22);
 
-          // Stage C: Rich, warm vintage cash-register resonant harmonic bell chime ringing out
-          const chimeFrequencies = [523.25, 659.25, 783.99, 1046.50]; // Pure C-Major arpeggio split chords
+          const chimeFrequencies = [523.25, 659.25, 783.99, 1046.50]; 
           chimeFrequencies.forEach((freq, idx) => {
             const bellOsc = audioCtx.createOscillator();
             const bellGain = audioCtx.createGain();
@@ -443,7 +422,7 @@
             bellOsc.stop(audioCtx.currentTime + 0.18 + (idx * 0.04) + 0.5);
           });
         }
-      } catch(e) { console.log('Audio stream policy exception handled.'); }
+      } catch(e) { console.log('Audio stream handled.'); }
     }
 
     function resetIdleTimeout() {
@@ -479,9 +458,35 @@
       showToastNotification("Cart cleared due to inactivity.", true);
     }
 
+    function initApp() {
+      if (products && products.length > 0) {
+        setupInterfaceOnlineMode();
+        renderCategoryTabs();
+        renderCatalog();
+      }
+      
+      fetchCloudInventory();
+      downloadAuthorizedUsers(); 
+      updateUI();
+      
+      setInterval(() => {
+        checkNetworkAndSyncQueue();
+      }, 15000);
+    }
+
+    function setupInterfaceOnlineMode() {
+      const payBtn = document.getElementById('pay-btn');
+      if (!payBtn) return;
+      payBtn.disabled = false;
+      payBtn.style.background = 'var(--success)';
+      payBtn.style.color = 'white';
+      payBtn.style.cursor = 'pointer';
+      payBtn.innerText = 'Checkout';
+    }
+
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
-      if (products.length === 0) {
+      if (!products || products.length === 0) {
         indicator.className = 'sync-status sync-loading';
         indicator.innerText = 'Syncing...';
       }
@@ -504,10 +509,11 @@
         })
         .catch(err => {
           console.log("Network read slow. Relying on cache maps.");
-          if (products.length > 0) {
+          if (products && products.length > 0) {
             setupInterfaceOnlineMode();
             renderCategoryTabs();
             renderCatalog();
+            updateNetworkIndicatorStatus();
           }
         });
     }
@@ -542,20 +548,23 @@
 
     function openLeaderboardModal() {
       triggerHapticPulse(15);
-      playSoundEffect('leaderboard_shimmer'); // Magical entrance chime
+      playSoundEffect('leaderboard_shimmer'); 
       const root = document.getElementById('leaderboard-list-root');
+      if (!root) return;
       root.innerHTML = '';
 
-      const rankedUsers = Object.keys(authorizedUsers)
+      // FIXED: Hardened parsing layers with strict typecasting default safety hooks
+      const rankedUsers = Object.keys(authorizedUsers || {})
         .map(alphaKey => {
           const profile = authorizedUsers[alphaKey];
-          const balance = parseFloat(profile.bill) || 0; 
+          // Extrapolate bill safely checking for undefined old cache references
+          const balance = profile && profile.bill ? parseFloat(profile.bill) : 0; 
           return {
-            name: `${profile.firstName || ''} ${profile.lastName ? profile.lastName.charAt(0) + '.' : ''}`.trim() || 'Shipmate',
+            name: profile ? `${profile.firstName || ''} ${profile.lastName ? profile.lastName.charAt(0) + '.' : ''}`.trim() : 'Shipmate',
             balance: balance
           };
         })
-        .filter(u => u.balance > 0)
+        .filter(u => u && u.balance > 0)
         .sort((a, b) => b.balance - a.balance)
         .slice(0, 5);
 
@@ -581,7 +590,7 @@
     }
 
     function closeLeaderboardModal() {
-      playSoundEffect('cancel_dismiss'); // Close swoop sound
+      playSoundEffect('cancel_dismiss'); 
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
 
@@ -684,7 +693,7 @@
         
         card.onclick = () => {
           triggerHapticPulse(15); 
-          playSoundEffect('add_item'); // Catalog addition snap
+          playSoundEffect('add_item'); 
           addToCart(product);
         };
         catalogEl.appendChild(card);
@@ -704,7 +713,7 @@
 
     function adjustQuantity(productId, delta) {
       triggerHapticPulse(15); 
-      playSoundEffect('adjust_qty'); // List volume adjust tone
+      playSoundEffect('adjust_qty'); 
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
       targetItem.quantity += delta;
@@ -754,9 +763,9 @@
     function pressKey(value) {
       triggerHapticPulse(10); 
       if (value === 'CLEAR' || value === 'BACKSPACE') {
-        playSoundEffect('keypad_clear'); // Delete warning notch
+        playSoundEffect('keypad_clear'); 
       } else {
-        playSoundEffect('keypad_tap'); // Standard input tick
+        playSoundEffect('keypad_tap'); 
       }
       
       const field = document.getElementById('alpha-field');
@@ -812,7 +821,6 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
-        // FIXED: Fire premium layered checkout satisfying synthesizer pipeline block
         playSoundEffect('premium_checkout_success');
         triggerHapticPulse([40, 40, 40]);
 
@@ -855,7 +863,7 @@
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
-        playSoundEffect('error_thud'); // Low buzzy error warning drop tone
+        playSoundEffect('error_thud'); 
         triggerHapticPulse([100, 50, 100]); 
         showToastNotification("Alpha Number not recognized", true);
       }
@@ -880,6 +888,7 @@
 
     function renderAdminInventory() {
       const listEl = document.getElementById('admin-inventory-list');
+      if (!listEl) return;
       listEl.innerHTML = '';
       products.forEach((prod) => {
         const row = document.createElement('div');
@@ -891,7 +900,7 @@
 
     function renderAdminLogs() {
       const logsEl = document.getElementById('admin-logs-list');
-      if (salesHistory.length === 0) return;
+      if (!logsEl || salesHistory.length === 0) return;
       logsEl.innerHTML = '';
       [...salesHistory].reverse().forEach(log => {
         const item = document.createElement('div');
