@@ -182,8 +182,6 @@
     }
     .toast-notification.show { top: 40px; }
     .toast-danger { background: var(--danger); font-size: 16px; font-weight: 700; padding: 16px 32px; }
-    
-    /* NEW: Idle timeout reset warning banner styles */
     .toast-warning { background: var(--warning); font-size: 18px; font-weight: 700; padding: 18px 36px; box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3); }
 
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
@@ -294,7 +292,6 @@
     let isTerminalOnline = true; 
     let isSyncingQueue = false;
 
-    // NEW: Global dynamic idle auto-timeout reference handles
     let idleTrackerTimer = null;
     let warningBannerTimer = null;
 
@@ -302,25 +299,89 @@
       if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    // NEW: Synthesized sound effects layout block
+    // FIXED: Segmented sound wave generator mapping dedicated synthesizers to each unique user event
     function playSoundEffect(type) {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        if (type === 'click') {
-          // Sharp, short mechanical click sound
+        // 1. ADD ITEM FROM CATALOG CHANNELS
+        if (type === 'add_item') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(1400, audioCtx.currentTime); // High-frequency tap snap
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+        }
+        
+        // 2. ADJUST LIST QUANTITIES (+ / -)
+        else if (type === 'adjust_qty') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Distinct lower blip tone
+          gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+        }
+
+        // 3. KEYPAD ENTRY TAP (0-9)
+        else if (type === 'keypad_tap') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime); // Mechanical touch feedback simulation
           gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-        } 
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // 4. KEYPAD BACKSPACE SNAP
+        else if (type === 'keypad_clear') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime); // Quick rasp snap notice
+          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        // 5. MODAL CANCEL CLOSURES
+        else if (type === 'cancel_dismiss') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.12); // Descending exit slide swoop
+          gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+        }
+
+        // 6. LEADERBOARD DISPLAY SHIMMER CHORD
+        else if (type === 'leaderboard_shimmer') {
+          const notes = [329.63, 392.00, 523.25, 659.25]; // Warm, airy chord structure notes
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.04));
+            gain.gain.setValueAtTime(0.04, audioCtx.currentTime + (idx * 0.04));
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.04) + 0.4);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + (idx * 0.04)); osc.stop(audioCtx.currentTime + (idx * 0.04) + 0.4);
+          });
+        }
+
+        // 7. TIMEOUT INACTIVITY WARNING
         else if (type === 'warning') {
-          // Double descending warning tone alert notice
           const osc1 = audioCtx.createOscillator();
           const gain1 = audioCtx.createGain();
           osc1.type = 'triangle';
@@ -331,49 +392,77 @@
           osc1.connect(gain1); gain1.connect(audioCtx.destination);
           osc1.start(); osc1.stop(audioCtx.currentTime + 0.25);
         }
-        else if (type === 'success') {
-          // Upbeat melodic structural 3-tone checkout arpeggio chime chime
-          const tones = [523.25, 659.25, 783.99]; // C5, E5, G5 arpeggio chord structures
-          tones.forEach((freq, idx) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.08));
-            gain.gain.setValueAtTime(0.12, audioCtx.currentTime + (idx * 0.08));
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.08) + 0.25);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(audioCtx.currentTime + (idx * 0.08));
-            osc.stop(audioCtx.currentTime + (idx * 0.08) + 0.25);
+
+        // 8. DENIAL ERROR DROP
+        else if (type === 'error_thud') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.3); // Low buzz drop profile
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+        
+        // 9. PREMIUM MULTI-STAGE SATISFYING PAYMENT CHIME
+        else if (type === 'premium_checkout_success') {
+          // Stage A: Sharp high frequency crystal snap (simulating structural mechanism locks closing)
+          const snapOsc = audioCtx.createOscillator();
+          const snapGain = audioCtx.createGain();
+          snapOsc.type = 'triangle';
+          snapOsc.frequency.setValueAtTime(2800, audioCtx.currentTime);
+          snapGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          snapGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+          snapOsc.connect(snapGain); snapGain.connect(audioCtx.destination);
+          snapOsc.start(); snapOsc.stop(audioCtx.currentTime + 0.05);
+          
+          // Stage B: Smooth, rapid laser sweep upward (simulating electronic balance clearing pipelines)
+          const sweepOsc = audioCtx.createOscillator();
+          const sweepGain = audioCtx.createGain();
+          sweepOsc.type = 'sine';
+          sweepOsc.frequency.setValueAtTime(380, audioCtx.currentTime + 0.03);
+          sweepOsc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.22); // Elegant sweep arc
+          sweepGain.gain.setValueAtTime(0.08, audioCtx.currentTime + 0.03);
+          sweepGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+          sweepOsc.connect(sweepGain); sweepGain.connect(audioCtx.destination);
+          sweepOsc.start(audioCtx.currentTime + 0.03); sweepOsc.stop(audioCtx.currentTime + 0.22);
+
+          // Stage C: Rich, warm vintage cash-register resonant harmonic bell chime ringing out
+          const chimeFrequencies = [523.25, 659.25, 783.99, 1046.50]; // Pure C-Major arpeggio split chords
+          chimeFrequencies.forEach((freq, idx) => {
+            const bellOsc = audioCtx.createOscillator();
+            const bellGain = audioCtx.createGain();
+            bellOsc.type = 'sine';
+            bellOsc.frequency.setValueAtTime(freq, audioCtx.currentTime + 0.18 + (idx * 0.04));
+            bellGain.gain.setValueAtTime(0.12, audioCtx.currentTime + 0.18 + (idx * 0.04));
+            bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18 + (idx * 0.04) + 0.5);
+            bellOsc.connect(bellGain); bellGain.connect(audioCtx.destination);
+            bellOsc.start(audioCtx.currentTime + 0.18 + (idx * 0.04));
+            bellOsc.stop(audioCtx.currentTime + 0.18 + (idx * 0.04) + 0.5);
           });
         }
-      } catch(e) { console.log('Audio Context muted via policy bindings.'); }
+      } catch(e) { console.log('Audio stream policy exception handled.'); }
     }
 
-    // NEW: Idle safety management state loop engines
     function resetIdleTimeout() {
-      // Clear out active waiting processes safely
       clearTimeout(idleTrackerTimer);
       clearTimeout(warningBannerTimer);
-      
-      // Hide warning layout banner frame if currently active on screen views
       const banner = document.getElementById('toast-banner');
       if (banner && banner.classList.contains('toast-warning')) {
         banner.className = 'toast-notification';
       }
-
-      // If cart has active items, start an invisible 60-second idle tracker loop
       if (cart.length > 0) {
         idleTrackerTimer = setTimeout(() => {
           triggerWarningTimeoutNotification();
-        }, 60000); // 60 Seconds baseline constraint
+        }, 60000);
       }
     }
 
     function triggerWarningTimeoutNotification() {
       playSoundEffect('warning');
       showToastNotification("Are you still checking out? Resetting soon...", false, true);
-      
-      // Grant user an extra 7-second grace buffer window to touch screen before cart wipe
       warningBannerTimer = setTimeout(() => {
         purgeCartDueToTimeout();
       }, 7000);
@@ -384,36 +473,10 @@
       updateUI();
       closePaymentModal();
       closeLeaderboardModal();
-      
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
-      
+      playSoundEffect('cancel_dismiss');
       showToastNotification("Cart cleared due to inactivity.", true);
-    }
-
-    function initApp() {
-      if (products.length > 0) {
-        setupInterfaceOnlineMode();
-        renderCategoryTabs();
-        renderCatalog();
-      }
-      
-      fetchCloudInventory();
-      downloadAuthorizedUsers(); 
-      updateUI();
-      
-      setInterval(() => {
-        checkNetworkAndSyncQueue();
-      }, 15000);
-    }
-
-    function setupInterfaceOnlineMode() {
-      const payBtn = document.getElementById('pay-btn');
-      payBtn.disabled = false;
-      payBtn.style.background = 'var(--success)';
-      payBtn.style.color = 'white';
-      payBtn.style.cursor = 'pointer';
-      payBtn.innerText = 'Checkout';
     }
 
     function fetchCloudInventory() {
@@ -479,7 +542,7 @@
 
     function openLeaderboardModal() {
       triggerHapticPulse(15);
-      playSoundEffect('click');
+      playSoundEffect('leaderboard_shimmer'); // Magical entrance chime
       const root = document.getElementById('leaderboard-list-root');
       root.innerHTML = '';
 
@@ -518,7 +581,7 @@
     }
 
     function closeLeaderboardModal() {
-      playSoundEffect('click');
+      playSoundEffect('cancel_dismiss'); // Close swoop sound
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
 
@@ -584,7 +647,7 @@
         btn.innerText = cat;
         btn.onclick = () => {
           triggerHapticPulse(15); 
-          playSoundEffect('click');
+          playSoundEffect('add_item');
           activeCategoryFilter = cat;
           renderCategoryTabs();
           renderCatalog();
@@ -621,7 +684,7 @@
         
         card.onclick = () => {
           triggerHapticPulse(15); 
-          playSoundEffect('click');
+          playSoundEffect('add_item'); // Catalog addition snap
           addToCart(product);
         };
         catalogEl.appendChild(card);
@@ -636,12 +699,12 @@
         cart.push({ ...product, quantity: 1 });
       }
       updateUI();
-      resetIdleTimeout(); // Reset tracking loops safely on item injections
+      resetIdleTimeout();
     }
 
     function adjustQuantity(productId, delta) {
       triggerHapticPulse(15); 
-      playSoundEffect('click');
+      playSoundEffect('adjust_qty'); // List volume adjust tone
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
       targetItem.quantity += delta;
@@ -649,7 +712,7 @@
         cart = cart.filter(item => item.id !== productId);
       }
       updateUI();
-      resetIdleTimeout(); // Reset timers on list changes
+      resetIdleTimeout();
     }
 
     function updateUI() {
@@ -690,7 +753,12 @@
 
     function pressKey(value) {
       triggerHapticPulse(10); 
-      playSoundEffect('click');
+      if (value === 'CLEAR' || value === 'BACKSPACE') {
+        playSoundEffect('keypad_clear'); // Delete warning notch
+      } else {
+        playSoundEffect('keypad_tap'); // Standard input tick
+      }
+      
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
         field.value = '';
@@ -699,23 +767,22 @@
       } else {
         if (field.value.length < 10) field.value += value;
       }
-      resetIdleTimeout(); // Lock activity loops on keypad interaction
+      resetIdleTimeout();
     }
 
     function openPaymentModal() { 
       if (cart.length === 0) return; 
       triggerHapticPulse(15);
-      playSoundEffect('click');
+      playSoundEffect('add_item');
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
     function closePaymentModal() { 
-      playSoundEffect('click');
+      playSoundEffect('cancel_dismiss');
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
     }
 
-    // UPDATED: Fault tolerance tracks custom warning styling parameters smoothly
     function showToastNotification(message, isError = false, isWarning = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
@@ -728,7 +795,6 @@
         toast.className = 'toast-notification show';
       }
       
-      // Warning banners remain explicitly managed by clear routines; standard popups fade normally
       if (!isWarning) {
         const visibilityDuration = isError ? 3000 : 5500; 
         setTimeout(() => { 
@@ -746,8 +812,8 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
-        // FIXED: Fire premium synthesized success audio sequence
-        playSoundEffect('success');
+        // FIXED: Fire premium layered checkout satisfying synthesizer pipeline block
+        playSoundEffect('premium_checkout_success');
         triggerHapticPulse([40, 40, 40]);
 
         const finalTotal = document.getElementById('total').innerText;
@@ -778,7 +844,6 @@
         updateUI();
         closePaymentModal();
         
-        // Clear active timeout loops completely upon successful authorization
         clearTimeout(idleTrackerTimer);
         clearTimeout(warningBannerTimer);
 
@@ -790,6 +855,7 @@
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
+        playSoundEffect('error_thud'); // Low buzzy error warning drop tone
         triggerHapticPulse([100, 50, 100]); 
         showToastNotification("Alpha Number not recognized", true);
       }
