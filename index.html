@@ -116,8 +116,8 @@
   <!-- Alpha Tracking Modal -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
-      <h3>Complete Checkout</h3>
-      <p>Enter your alpha number using the pad below.</p>
+      <h3>Alpha Number</h3>
+      <p>Enter your Alpha Number using the pad below.</p>
       
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
       
@@ -361,13 +361,13 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        showToastNotification(`Order Confirmed for ID: ${alphaNumber}`, false);
+        showToastNotification(`Thank you!`, false);
         cart = [];
         updateUI();
         closePaymentModal();
       } else {
         // FIX: Kept value intact in field so user can adjust what they typed wrong
-        showToastNotification("Declined: User ID not authorized", true);
+        showToastNotification("Alpha Number not Recognized", true);
       }
     }
 
