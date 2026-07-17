@@ -103,7 +103,7 @@
   <div class="receipt-side">
     <div style="padding: 24px 24px 0 24px;"><h2>Your Cart</h2></div>
     <div class="receipt-items" id="cart-list">
-      <p style="color: #86868b; text-align: center; margin-top: 40px;">No items scanned yet.</p>
+      <p style="color: #86868b; text-align: center; margin-top: 40px;">Your cart is empty.</p>
     </div>
     
     <div class="totals-box">
@@ -295,7 +295,7 @@
       });
 
       document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-      document.getElementById('total').innerText = `$${subtotal.toFixed(2)}`; // Total matches subtotal directly (No Tax)
+      document.getElementById('total').innerText = `$${subtotal.toFixed(2)}`;
     }
 
     function pressKey(value) {
@@ -348,7 +348,8 @@
           timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
           userAlpha: alphaNumber,
           summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
-          grandTotal: finalTotal
+          grandTotal: finalTotal,
+          rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) // NEW: Passes array structure to update stock rows
         };
 
         salesHistory.push(receiptEntry);
@@ -366,7 +367,6 @@
         updateUI();
         closePaymentModal();
       } else {
-        // FIX: Kept value intact in field so user can adjust what they typed wrong
         showToastNotification("Alpha Number not Recognized", true);
       }
     }
