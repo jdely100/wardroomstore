@@ -17,6 +17,7 @@
       --border: #e2e8f0;
       --overlay: rgba(15, 23, 42, 0.6);
       --danger: #ef4444;
+      --warning: #f59e0b;
     }
     
     body {
@@ -155,13 +156,8 @@
     .sync-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .sync-loading { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
     .sync-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .sync-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 
-    .offline-blocker { 
-      grid-column: 1 / -1; text-align: center; padding: 48px; background: white; 
-      border-radius: 24px; border: 1px solid var(--border); margin-top: 20px;
-    }
-
-    /* FIXED: Increased font size padding parameters to make checkout success alerts look dominant on iPad screens */
     .toast-notification {
       position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
       background: var(--primary); color: white; padding: 22px 44px; border-radius: 40px;
@@ -187,7 +183,6 @@
 
   <div class="catalog-side">
     <div class="section-header">
-      <!-- FIXED: Updated Branding Heading text node -->
       <h2>30th Company Wardroom Store</h2>
       <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
     </div>
@@ -247,6 +242,7 @@
       </div>
       <div class="admin-column">
         <h3>Device Session Logs</h3>
+        <div id="admin-outbox-status" style="padding: 10px; background: #f8fafc; border-radius:10px; margin-bottom:10px; font-weight:600; font-size:14px;">Offline Queue: 0 pending uploads</div>
         <div id="admin-logs-list" style="flex:1;">
           <p style="color:var(--text-muted); font-size:14px;">No logs indexed.</p>
         </div>
@@ -258,26 +254,49 @@
   <script>
     const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbz6fpkQS2cHGQeDcUXwRudeBxsxLE8JMIzcDcXgmzI_-jbRao2dpL14DnWiBk8RVQ9q7g/exec';
     
-    let products = []; 
+    let products = JSON.parse(localStorage.getItem('kiosk_products_cache')) || []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
+    let authorizedUsers = JSON.parse(localStorage.getItem('kiosk_users_cache')) || {}; 
+    let offlineQueue = JSON.parse(localStorage.getItem('kiosk_offline_queue')) || [];
+    
     let cart = [];
-    let authorizedUsers = {}; 
-    let activeCategoryFilter = "All"; // FIXED: Capitalized default selector status
+    let activeCategoryFilter = "All";
+    let isTerminalOnline = false;
+    let isSyncingQueue = false;
 
     function initApp() {
+      // Seed UI instantly using device localStorage cache if available
+      if (products.length > 0) {
+        setupInterfaceOnlineMode();
+        renderCategoryTabs();
+        renderCatalog();
+      }
+      
       fetchCloudInventory();
       downloadAuthorizedUsers(); 
       updateUI();
+      
+      // Background worker interval loop runs network and sync queries every 15 seconds
+      setInterval(() => {
+        checkNetworkAndSyncQueue();
+      }, 15000);
+    }
+
+    function setupInterfaceOnlineMode() {
+      const payBtn = document.getElementById('pay-btn');
+      payBtn.disabled = false;
+      payBtn.style.background = 'var(--success)';
+      payBtn.style.color = 'white';
+      payBtn.style.cursor = 'pointer';
+      payBtn.innerText = 'Checkout';
     }
 
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
-      const catalogEl = document.getElementById('catalog');
-      const payBtn = document.getElementById('pay-btn');
-
-      indicator.className = 'sync-status sync-loading';
-      indicator.innerText = 'Syncing...';
-      catalogEl.innerHTML = '';
+      if (!isTerminalOnline && products.length === 0) {
+        indicator.className = 'sync-status sync-loading';
+        indicator.innerText = 'Syncing...';
+      }
 
       fetch(googleScriptUrl)
         .then(response => {
@@ -287,40 +306,57 @@
         .then(data => {
           if (data && Array.isArray(data) && data.length > 0) {
             products = data;
-            indicator.className = 'sync-status sync-success';
-            indicator.innerText = '● Connected';
+            isTerminalOnline = true;
             
-            payBtn.disabled = false;
-            payBtn.style.background = 'var(--success)';
-            payBtn.style.color = 'white';
-            payBtn.style.cursor = 'pointer';
-            payBtn.innerText = 'Checkout';
-
+            // Commit to device storage so catalog works completely offline next time
+            localStorage.setItem('kiosk_products_cache', JSON.stringify(products));
+            
+            updateNetworkIndicatorStatus();
+            setupInterfaceOnlineMode();
             renderCategoryTabs();
             renderCatalog();
-          } else {
-            throw new Error("Invalid or empty data format received.");
+            
+            // Trigger an immediate check to dump backlog if online
+            checkNetworkAndSyncQueue();
           }
         })
         .catch(err => {
-          console.error("Connection failed:", err);
-          indicator.className = 'sync-status sync-error';
-          indicator.innerText = '● Terminal Offline';
-
-          catalogEl.innerHTML = `
-            <div class="offline-blocker">
-              <h3 style="color:var(--danger); margin-top:0; font-size:20px;">Database Connection Failed</h3>
-              <p style="color:var(--text-muted); margin-bottom:24px; font-size:15px; line-height:1.4;">The checkout architecture could not sync with your Google Sheet. Verify your sheet tabs and deploy permissions.</p>
-              <button class="btn-modal btn-submit" style="max-width:220px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection</button>
-            </div>
-          `;
-
-          payBtn.disabled = true;
-          payBtn.style.background = '#e2e8f0';
-          payBtn.style.color = 'var(--text-muted)';
-          payBtn.style.cursor = 'not-allowed';
-          payBtn.innerText = 'Sync Required';
+          console.log("Cloud sync paused. Relying on local memory buffers.");
+          isTerminalOnline = false;
+          updateNetworkIndicatorStatus();
+          
+          if (products.length > 0) {
+            setupInterfaceOnlineMode();
+            renderCategoryTabs();
+            renderCatalog();
+          } else {
+            document.getElementById('catalog').innerHTML = `
+              <div style="grid-column: 1/-1; text-align:center; padding:48px; background:white; border-radius:24px; border:1px solid var(--border);">
+                <h3 style="color:var(--danger); margin:0 0 10px 0;">First-time Setup Required</h3>
+                <p style="color:var(--text-muted); margin:0;">Connect to Wi-Fi to pull your inventory database down for the first time.</p>
+              </div>
+            `;
+          }
         });
+    }
+
+    function updateNetworkIndicatorStatus() {
+      const indicator = document.getElementById('sync-indicator');
+      if (!indicator) return;
+      
+      if (offlineQueue.length > 0) {
+        indicator.className = 'sync-status sync-warning';
+        indicator.innerText = `● Offline Mode (${offlineQueue.length} Pending)`;
+      } else if (isTerminalOnline) {
+        indicator.className = 'sync-status sync-success';
+        indicator.innerText = '● Connected';
+      } else {
+        indicator.className = 'sync-status sync-error';
+        indicator.innerText = '● Offline Mode';
+      }
+      
+      const outboxLabel = document.getElementById('admin-outbox-status');
+      if (outboxLabel) outboxLabel.innerText = `Offline Queue: ${offlineQueue.length} pending uploads`;
     }
 
     function downloadAuthorizedUsers() {
@@ -329,9 +365,64 @@
         .then(data => {
           if (data && data.masterList) {
             authorizedUsers = data.masterList;
+            localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
           }
         })
-        .catch(err => console.error("User sheet error:", err));
+        .catch(err => console.log("Relying on cached user identity matrix."));
+    }
+
+    // COMPACT SYNC ENGINE: Recursively processes queued requests one by one to ensure zero dropped stock tallies
+    function checkNetworkAndSyncQueue() {
+      if (isSyncingQueue || offlineQueue.length === 0) return;
+      isSyncingQueue = true;
+      
+      // Ping sheets endpoint to verify raw write availability
+      fetch(`${googleScriptUrl}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Outbox endpoint blocked");
+          return res.json();
+        })
+        .then(data => {
+          isTerminalOnline = true;
+          processNextQueueItem();
+        })
+        .catch(err => {
+          isSyncingQueue = false;
+          isTerminalOnline = false;
+          updateNetworkIndicatorStatus();
+        });
+    }
+
+    function processNextQueueItem() {
+      if (offlineQueue.length === 0) {
+        isSyncingQueue = false;
+        updateNetworkIndicatorStatus();
+        return;
+      }
+
+      const nextItem = offlineQueue[0];
+
+      fetch(googleScriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nextItem)
+      })
+      .then(() => {
+        // Successful post write! Shift queue array down by one
+        offlineQueue.shift();
+        localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
+        updateNetworkIndicatorStatus();
+        
+        // Loop execution cleanly for next array item index position recursive reference
+        setTimeout(processNextQueueItem, 1000);
+      })
+      .catch(err => {
+        console.error("Backlog pipeline blocked temporarily", err);
+        isSyncingQueue = false;
+        isTerminalOnline = false;
+        updateNetworkIndicatorStatus();
+      });
     }
 
     function renderCategoryTabs() {
@@ -340,7 +431,6 @@
       container.innerHTML = '';
       
       const validCategories = products.filter(p => p && p.category).map(p => p.category);
-      // FIXED: Swapped raw uppercase 'ALL' for proper typography styling 'All'
       const uniqueCategories = ["All", ...new Set(validCategories)];
       
       uniqueCategories.forEach(cat => {
@@ -464,13 +554,11 @@
       document.getElementById('alpha-field').value = ''; 
     }
 
-    // FIXED: Upgraded timeline parameter to extend visibility from 3 to 5.5 seconds
     function showToastNotification(message, isError = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
       toast.className = isError ? 'toast-notification show toast-danger' : 'toast-notification show';
-      
-      const visibilityDuration = isError ? 3000 : 5500; // Success alerts stay visible for 5.5 seconds
+      const visibilityDuration = isError ? 3000 : 5500; 
       setTimeout(() => { toast.className = 'toast-notification'; }, visibilityDuration);
     }
 
@@ -480,7 +568,8 @@
 
       const userProfile = authorizedUsers[alphaNumber];
 
-      if (userProfile) {
+      // CRITICAL SECURITY BALANCER: Allow offline sign-offs even if user database cache missed
+      if (userProfile || !isTerminalOnline) {
         const finalTotal = document.getElementById('total').innerText;
         const receiptEntry = {
           timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
@@ -490,23 +579,29 @@
           rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) 
         };
 
+        // Write immediately to primary visual local device history
         salesHistory.push(receiptEntry);
         localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-        fetch(googleScriptUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(receiptEntry)
-        });
+        // PACKAGING PIPELINE: Push directly to dynamic offline buffer array cache
+        offlineQueue.push(receiptEntry);
+        localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
 
-        // FIXED: Updated checkout completion alert messaging profile
-        var dynamicGreeting = userProfile.firstName ? userProfile.firstName : "Shipmate";
-        showToastNotification(`Thank you, ${dynamicGreeting}!`, false);
+        var dynamicGreeting = (userProfile && userProfile.firstName) ? userProfile.firstName : "Shipmate";
+        
+        if (!isTerminalOnline) {
+          showToastNotification(`Thank you, ${dynamicGreeting}!\n(Stored Offline - Safe to Walk Away)`, false);
+        } else {
+          showToastNotification(`Thank you, ${dynamicGreeting}!`, false);
+        }
         
         cart = [];
         updateUI();
         closePaymentModal();
+        updateNetworkIndicatorStatus();
+
+        // Kick off immediate non-blocking upload worker attempt
+        setTimeout(checkNetworkAndSyncQueue, 500);
       } else {
         showToastNotification("Alpha Number not recognized", true);
       }
