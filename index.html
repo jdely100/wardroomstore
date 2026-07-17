@@ -40,6 +40,14 @@
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
+    /* Leaderboard Interactive Accessor Button */
+    .leaderboard-trigger-btn {
+      background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
+      padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+    }
+    .leaderboard-trigger-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+
     .category-bar {
       display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
@@ -130,6 +138,16 @@
     .modal-box h3 { margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: var(--primary); }
     .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
     
+    /* Leaderboard Layout Spec Nodes */
+    .leaderboard-container { text-align: left; max-height: 380px; overflow-y: auto; margin-bottom: 10px; padding-right: 4px; }
+    .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .leaderboard-rank { font-weight: 800; font-size: 15px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; background: #f1f5f9; color: var(--text-muted); }
+    .rank-1 .leaderboard-rank { background: #fef08a; color: #a16207; }
+    .rank-2 .leaderboard-rank { background: #e2e8f0; color: #475569; }
+    .rank-3 .leaderboard-rank { background: #ffedd5; color: #c2410c; }
+    .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
+    .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
+
     .alpha-input { 
       width: 100%; padding: 16px; font-size: 28px; font-weight: 800; border: 2px solid var(--border); 
       border-radius: 16px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
@@ -182,7 +200,10 @@
   <div class="catalog-side">
     <div class="section-header">
       <h2>30th Company Wardroom Store</h2>
-      <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="leaderboard-trigger-btn" onclick="openLeaderboardModal()">🏆 View Leaderboard</button>
+        <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
+      </div>
     </div>
     <div class="category-bar" id="category-tabs-container"></div>
     <div class="grid" id="catalog"></div>
@@ -196,6 +217,20 @@
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e2e8f0; color:var(--text-muted); cursor:not-allowed; box-shadow:none;">Initializing...</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard Standings Display Overlay Modal -->
+  <div class="modal-overlay" id="leaderboard-modal">
+    <div class="modal-box" style="max-width: 460px;">
+      <h3>Wardroom Spenders</h3>
+      <p>Current top 10 account balances driving company support metrics.</p>
+      
+      <div class="leaderboard-container" id="leaderboard-list-root">
+        <!-- Render targets populate systematically here -->
+      </div>
+      
+      <button class="btn-modal btn-cancel" style="width:100%; margin-top:12px;" onclick="closeLeaderboardModal()">Close Leaderboard</button>
     </div>
   </div>
 
@@ -259,8 +294,12 @@
     
     let cart = [];
     let activeCategoryFilter = "All";
-    let isTerminalOnline = true; // Assume online inside basic memory buffers
+    let isTerminalOnline = true; 
     let isSyncingQueue = false;
+
+    function triggerHapticPulse(ms) {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
 
     function initApp() {
       if (products.length > 0) {
@@ -273,7 +312,6 @@
       downloadAuthorizedUsers(); 
       updateUI();
       
-      // Heartbeat interval evaluates connection loops quietly every 15 seconds
       setInterval(() => {
         checkNetworkAndSyncQueue();
       }, 15000);
@@ -304,9 +342,7 @@
           if (data && Array.isArray(data) && data.length > 0) {
             products = data;
             isTerminalOnline = true;
-            
             localStorage.setItem('kiosk_products_cache', JSON.stringify(products));
-            
             updateNetworkIndicatorStatus();
             setupInterfaceOnlineMode();
             renderCategoryTabs();
@@ -314,8 +350,7 @@
           }
         })
         .catch(err => {
-          console.log("Network read slow. Relying on local cache structures.");
-          // FIXED: Do not instantly drop state flags on background routine timeouts
+          console.log("Network read slow. Relying on cache maps.");
           if (products.length > 0) {
             setupInterfaceOnlineMode();
             renderCategoryTabs();
@@ -328,7 +363,6 @@
       const indicator = document.getElementById('sync-indicator');
       if (!indicator) return;
       
-      // FIXED: Only toggle view states if the offline pipeline queue becomes heavily backed up
       if (isTerminalOnline && offlineQueue.length <= 1) {
         indicator.className = 'sync-status sync-success';
         indicator.innerText = '● Connected';
@@ -353,13 +387,62 @@
         .catch(err => console.log("User mapping locked."));
     }
 
+    // NEW: Leaderboard Matrix Calculator Engine
+    function openLeaderboardModal() {
+      triggerHapticPulse(15);
+      const root = document.getElementById('leaderboard-list-root');
+      root.innerHTML = '';
+
+      // Compile, unpack, and cast user record entities into iterable float objects
+      const rankedUsers = Object.keys(authorizedUsers)
+        .map(alphaKey => {
+          const profile = authorizedUsers[alphaKey];
+          // Extrapolate bill balances, falling back safely to 0 if blank
+          const balance = parseFloat(profile.bill) || 0; 
+          return {
+            name: `${profile.firstName || ''} ${profile.lastName ? profile.lastName.charAt(0) + '.' : ''}`.trim() || 'Shipmate',
+            balance: balance
+          };
+        })
+        // Filter out anyone who has not made a purchase yet to keep the list clean
+        .filter(u => u.balance > 0)
+        // Sort highest spenders to the top
+        .sort((a, b) => b.balance - a.balance)
+        // Isolate the top 10 entries
+        .slice(0, 10);
+
+      if (rankedUsers.length === 0) {
+        root.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">No balances logged yet.</p>';
+      } else {
+        rankedUsers.forEach((user, index) => {
+          const rank = index + 1;
+          const card = document.createElement('div');
+          card.className = `leaderboard-row rank-${rank}`;
+          card.innerHTML = `
+            <div style="display:flex; align-items:center;">
+              <div class="leaderboard-rank">${rank}</div>
+              <div class="leaderboard-identity">${user.name}</div>
+            </div>
+            <div class="leaderboard-score">$${user.balance.toFixed(2)}</div>
+          `;
+          root.appendChild(card);
+        });
+      }
+
+      document.getElementById('leaderboard-modal').style.display = 'flex';
+    }
+
+    function closeLeaderboardModal() {
+      document.getElementById('leaderboard-modal').style.display = 'none';
+    }
+
     function checkNetworkAndSyncQueue() {
       if (isSyncingQueue || offlineQueue.length === 0) return;
       isSyncingQueue = true;
       
       fetch(`${googleScriptUrl}`)
         .then(res => {
-          if (!res.ok) throw new Error("Outbox drops raw sync frames.");
+          if (!res.ok) throw new Error("Outbox sync dropped");
           return res.json();
         })
         .then(data => {
@@ -414,6 +497,7 @@
         btn.className = `category-tab ${activeCategoryFilter === cat ? 'active' : ''}`;
         btn.innerText = cat;
         btn.onclick = () => {
+          triggerHapticPulse(15); 
           activeCategoryFilter = cat;
           renderCategoryTabs();
           renderCatalog();
@@ -448,7 +532,10 @@
           <div class="product-price">$${(product.price || 0).toFixed(2)}</div>
         `;
         
-        card.onclick = () => addToCart(product);
+        card.onclick = () => {
+          triggerHapticPulse(15); 
+          addToCart(product);
+        };
         catalogEl.appendChild(card);
       });
     }
@@ -464,6 +551,7 @@
     }
 
     function adjustQuantity(productId, delta) {
+      triggerHapticPulse(15); 
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
       targetItem.quantity += delta;
@@ -510,6 +598,7 @@
     }
 
     function pressKey(value) {
+      triggerHapticPulse(10); 
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
         field.value = '';
@@ -522,6 +611,7 @@
 
     function openPaymentModal() { 
       if (cart.length === 0) return; 
+      triggerHapticPulse(15);
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
@@ -545,6 +635,8 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
+        triggerHapticPulse([40, 40, 40]);
+
         const finalTotal = document.getElementById('total').innerText;
         const receiptEntry = {
           timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
@@ -553,6 +645,13 @@
           grandTotal: finalTotal,
           rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) 
         };
+
+        // Also track locally so leaderboard can read the transaction if offline
+        if (userProfile) {
+          const numericalTotal = parseFloat(finalTotal.replace(/[^0-9.]/g, '')) || 0;
+          userProfile.bill = (parseFloat(userProfile.bill) || 0) + numericalTotal;
+          localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
+        }
 
         salesHistory.push(receiptEntry);
         localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
@@ -567,16 +666,15 @@
         updateUI();
         closePaymentModal();
         
-        // FIXED: Intentionally keep indicator locked on Connected during standard checkout processing loops
         const indicator = document.getElementById('sync-indicator');
         if (indicator && offlineQueue.length <= 1) {
           indicator.className = 'sync-status sync-success';
           indicator.innerText = '● Connected';
         }
 
-        // Delay background worker call to prevent standard script lag from falsifying network dropout state indicators
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
+        triggerHapticPulse([100, 50, 100]); 
         showToastNotification("Alpha Number not recognized", true);
       }
     }
