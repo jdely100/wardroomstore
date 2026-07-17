@@ -48,8 +48,30 @@
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); display: none; align-items: center; justify-content: center; z-index: 999;
     }
-    .modal-box { background: white; width: 90%; max-width: 420px; padding: 30px; border-radius: 20px; text-align: center; }
-    .alpha-input { width: 100%; padding: 14px; font-size: 18px; border: 1px solid #d2d2d7; border-radius: 10px; margin-bottom: 20px; text-align: center; box-sizing: border-box; }
+    .modal-box { background: white; width: 95%; max-width: 400px; padding: 24px; border-radius: 20px; text-align: center; box-sizing: border-box; }
+    .alpha-input { width: 100%; padding: 14px; font-size: 24px; font-weight: bold; border: 1px solid #d2d2d7; border-radius: 10px; margin-bottom: 20px; text-align: center; box-sizing: border-box; background: #f5f5f7; }
+
+    /* On-Screen Keypad Grid Layout */
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .key-btn {
+      background: #e5e5ea;
+      color: var(--text);
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 22px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .key-btn:active { background: #d1d1d6; }
+    .key-clear { background: #ff3b30; color: white; }
+    .key-clear:active { background: #d63027; }
+
     .modal-actions { display: flex; gap: 12px; }
     .btn-modal { flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; }
     .btn-cancel { background: #e5e5ea; color: var(--text); }
@@ -64,9 +86,34 @@
     .sync-status { font-size: 14px; font-weight: bold; margin-bottom: 10px; }
     .sync-success { color: var(--success); }
     .sync-loading { color: var(--primary); }
+    .sync-error { color: var(--danger); }
+
+    .offline-blocker { grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+
+    /* Custom Toast Banner Notification */
+    .toast-notification {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #323232;
+      color: white;
+      padding: 16px 32px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 2000;
+      transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+    }
+    .toast-notification.show { top: 30px; }
   </style>
 </head>
 <body>
+
+  <!-- Self-Hiding Alert Banner Container -->
+  <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
   <!-- Hidden Trigger: Bottom left corner invisible access node -->
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
@@ -75,7 +122,7 @@
   <div class="catalog-side">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
       <h2 style="margin:0;">Tap items to scan</h2>
-      <div id="sync-indicator" class="sync-status sync-loading">Syncing inventory...</div>
+      <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
     </div>
     <div class="grid" id="catalog"></div>
   </div>
@@ -90,16 +137,35 @@
       <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
       <div class="total-row"><span>Tax (8%)</span><span id="tax">$0.00</span></div>
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
-      <button class="btn-pay" onclick="openPaymentModal()">Complete Payment</button>
+      <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
     </div>
   </div>
 
-  <!-- Alpha Tracking Modal -->
+  <!-- Alpha Tracking Modal with Custom Screen Keypad -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
       <h3>Track Transaction</h3>
-      <p>Please enter your Alpha Number to tie your identity to this checkout session.</p>
-      <input type="text" class="alpha-input" id="alpha-field" placeholder="e.g. A1234B" autocomplete="off" autocapitalize="characters">
+      <p>Enter your tracking number using the pad below.</p>
+      
+      <!-- Read-Only display field (avoids popping up iPad default keyboard) -->
+      <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
+      
+      <!-- Keypad Layout Matrix -->
+      <div class="keypad-grid">
+        <button class="key-btn" onclick="pressKey('1')">1</button>
+        <button class="key-btn" onclick="pressKey('2')">2</button>
+        <button class="key-btn" onclick="pressKey('3')">3</button>
+        <button class="key-btn" onclick="pressKey('4')">4</button>
+        <button class="key-btn" onclick="pressKey('5')">5</button>
+        <button class="key-btn" onclick="pressKey('6')">6</button>
+        <button class="key-btn" onclick="pressKey('7')">7</button>
+        <button class="key-btn" onclick="pressKey('8')">8</button>
+        <button class="key-btn" onclick="pressKey('9')">9</button>
+        <button class="key-btn key-clear" onclick="pressKey('CLEAR')">C</button>
+        <button class="key-btn" onclick="pressKey('0')">0</button>
+        <button class="key-btn" onclick="pressKey('BACKSPACE')">⌫</button>
+      </div>
+
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
         <button class="btn-modal btn-submit" onclick="submitPayment()">Confirm Order</button>
@@ -114,17 +180,13 @@
       <button class="btn-modal btn-cancel" style="max-width: 120px;" onclick="closeAdmin()">Exit System</button>
     </div>
     <div class="admin-content">
-      
-      <!-- Left Column: Inventory Cloud Info -->
       <div class="admin-column">
         <h3>Cloud Inventory Link Active</h3>
-        <p style="color:#86868b; line-height: 1.5;">Your item pricing and directory configurations are actively controlled via Google Sheets. To add, edit, or adjust items, update the <strong>Inventory</strong> sheet tab directly.</p>
+        <p style="color:#86868b; line-height: 1.5;">Your item pricing configurations are actively controlled via Google Sheets. Update the <strong>Inventory</strong> sheet tab directly.</p>
         <button class="btn-modal btn-submit" style="width:100%; background: var(--primary);" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
         <h3 style="margin-top:30px;">Active Storefront Directory</h3>
         <div id="admin-inventory-list"></div>
       </div>
-
-      <!-- Right Column: Transaction Logs -->
       <div class="admin-column">
         <h3>Historic Audit Logs</h3>
         <div id="admin-logs-list" style="flex:1;">
@@ -132,55 +194,71 @@
         </div>
         <button class="btn-modal btn-cancel" style="background: var(--danger); color: white; margin-top: 12px;" onclick="clearLogs()">Wipe Local Device History</button>
       </div>
-
     </div>
   </div>
 
   <script>
-    // 1. App Configuration & Local Cache Memory Base
     const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbz6fpkQS2cHGQeDcUXwRudeBxsxLE8JMIzcDcXgmzI_-jbRao2dpL14DnWiBk8RVQ9q7g/exec';
     
-    // Fallback products used if iPad fails to fetch from cloud during first initialization
-    const localFallbackProducts = [
-      { id: 1, name: 'Apple (Offline)', price: 0.99 },
-      { id: 2, name: 'Banana (Offline)', price: 0.59 }
-    ];
-
-    let products = JSON.parse(localStorage.getItem('kiosk_inventory')) || localFallbackProducts;
+    let products = []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
 
     function initApp() {
-      fetchCloudInventory(); // Download inventory from Google Sheet immediately
+      fetchCloudInventory();
       updateUI();
     }
 
-    // Dynamic Cloud Pull Method
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
+      const catalogEl = document.getElementById('catalog');
+      const payBtn = document.getElementById('pay-btn');
+
       indicator.className = 'sync-status sync-loading';
-      indicator.innerText = 'Syncing inventory...';
+      indicator.innerText = 'Connecting to spreadsheet...';
+      catalogEl.innerHTML = '';
 
       fetch(googleScriptUrl)
         .then(response => response.json())
         .then(data => {
           if (data && data.length > 0 && !data.error) {
             products = data;
-            localStorage.setItem('kiosk_inventory', JSON.stringify(products)); // Store local copy for offline stability
             indicator.className = 'sync-status sync-success';
             indicator.innerText = '● Live Google Sheet Connected';
+            
+            payBtn.disabled = false;
+            payBtn.style.background = 'var(--success)';
+            payBtn.style.color = 'white';
+            payBtn.style.cursor = 'pointer';
+            payBtn.innerText = 'Complete Payment';
+
+            renderCatalog();
           } else {
-            throw new Error("Invalid structure data format from sheet context");
+            throw new Error("Invalid structure data");
           }
         })
         .catch(err => {
-          console.error("Cloud inventory pull bypassed. Using cached system values.", err);
-          indicator.className = 'sync-status';
-          indicator.style.color = 'var(--danger)';
-          indicator.innerText = '● Offline Mode (Using Cached Inventory)';
-        })
-        .finally(() => {
-          renderCatalog();
+          console.error("Cloud connection failed.", err);
+          products = [];
+          indicator.className = 'sync-status sync-error';
+          indicator.innerText = '● Connection Failure - Check Wi-Fi';
+
+          catalogEl.innerHTML = `
+            <div class="offline-blocker">
+              <h3 style="color:var(--danger); margin-top:0;">Database Offline</h3>
+              <p style="color:#86868b; margin-bottom:20px;">The iPad checkout terminal requires an active internet connection to retrieve inventory prices.</p>
+              <button class="btn-modal btn-submit" style="max-width:200px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection</button>
+            </div>
+          `;
+
+          payBtn.disabled = true;
+          payBtn.style.background = '#e5e5ea';
+          payBtn.style.color = '#86868b';
+          payBtn.style.cursor = 'not-allowed';
+          payBtn.innerText = 'Connection Required';
+          
+          cart = [];
+          updateUI();
         });
     }
 
@@ -197,6 +275,7 @@
     }
 
     function addToCart(product) {
+      if (products.length === 0) return;
       const existingItem = cart.find(item => item.id === product.id);
       if (existingItem) {
         existingItem.quantity += 1;
@@ -235,12 +314,46 @@
       document.getElementById('total').innerText = `$${total.toFixed(2)}`;
     }
 
-    function openPaymentModal() { if (cart.length === 0) return alert('Your cart is empty!'); document.getElementById('payment-modal').style.display = 'flex'; document.getElementById('alpha-field').focus(); }
-    function closePaymentModal() { document.getElementById('payment-modal').style.display = 'none'; document.getElementById('alpha-field').value = ''; }
+    // Keypad Logic Engine
+    function pressKey(value) {
+      const field = document.getElementById('alpha-field');
+      if (value === 'CLEAR') {
+        field.value = '';
+      } else if (value === 'BACKSPACE') {
+        field.value = field.value.slice(0, -1);
+      } else {
+        // Enforce maximum length safety check (e.g., 10 characters)
+        if (field.value.length < 10) {
+          field.value += value;
+        }
+      }
+    }
+
+    function openPaymentModal() { 
+      if (cart.length === 0) return alert('Your cart is empty!'); 
+      document.getElementById('payment-modal').style.display = 'flex'; 
+    }
+    
+    function closePaymentModal() { 
+      document.getElementById('payment-modal').style.display = 'none'; 
+      document.getElementById('alpha-field').value = ''; 
+    }
+
+    // Self-Dismissing Toast Notification Controller
+    function showToastNotification(message) {
+      const toast = document.getElementById('toast-banner');
+      toast.innerText = message;
+      toast.classList.add('show');
+      
+      // Auto-hide the message exactly 3 seconds (3000ms) later
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
 
     function submitPayment() {
-      const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
-      if (!alphaNumber) return alert('Please provide a valid Alpha Number.');
+      const alphaNumber = document.getElementById('alpha-field').value.trim();
+      if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
       const finalTotal = document.getElementById('total').innerText;
       const receiptEntry = {
@@ -260,7 +373,9 @@
         body: JSON.stringify(receiptEntry)
       });
 
-      alert(`Transaction logged to Alpha: ${alphaNumber}`);
+      // Show self-hiding popup toast banner
+      showToastNotification(`Order Confirmed for ID: ${alphaNumber}`);
+      
       cart = [];
       updateUI();
       closePaymentModal();
@@ -289,6 +404,10 @@
     function renderAdminInventory() {
       const listEl = document.getElementById('admin-inventory-list');
       listEl.innerHTML = '';
+      if (products.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--danger)">Offline: No inventory loaded.</p>';
+        return;
+      }
       products.forEach((prod) => {
         const row = document.createElement('div');
         row.className = 'log-item';
@@ -320,7 +439,6 @@
       }
     }
 
-    // Launch application environments
     initApp();
   </script>
 </body>
