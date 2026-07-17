@@ -94,14 +94,14 @@
   <!-- Front End Kiosk View -->
   <div class="catalog-side">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-      <h2 style="margin:0;">Tap items to scan</h2>
+      <h2 style="margin:0;">Add Items to Cart</h2>
       <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
     </div>
     <div class="grid" id="catalog"></div>
   </div>
 
   <div class="receipt-side">
-    <div style="padding: 24px 24px 0 24px;"><h2>Current Order</h2></div>
+    <div style="padding: 24px 24px 0 24px;"><h2>Your Cart</h2></div>
     <div class="receipt-items" id="cart-list">
       <p style="color: #86868b; text-align: center; margin-top: 40px;">No items scanned yet.</p>
     </div>
@@ -116,8 +116,8 @@
   <!-- Alpha Tracking Modal -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
-      <h3>Track Transaction</h3>
-      <p>Enter your tracking number using the pad below.</p>
+      <h3>Complete Checkout</h3>
+      <p>Enter your alpha number using the pad below.</p>
       
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
       
@@ -138,7 +138,7 @@
 
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
-        <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Confirm Order</button>
+        <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Checkout</button>
       </div>
     </div>
   </div>
@@ -197,13 +197,13 @@
           if (data && data.length > 0 && !data.error) {
             products = data;
             indicator.className = 'sync-status sync-success';
-            indicator.innerText = '● Live Google Sheet Connected';
+            indicator.innerText = '● Online';
             
             payBtn.disabled = false;
             payBtn.style.background = 'var(--success)';
             payBtn.style.color = 'white';
             payBtn.style.cursor = 'pointer';
-            payBtn.innerText = 'Complete Payment';
+            payBtn.innerText = 'Checkout';
 
             renderCatalog();
           } else {
@@ -276,7 +276,7 @@
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
       if (cart.length === 0) {
-        cartListEl.innerHTML = '<p style="color: #86868b; text-align: center; margin-top: 40px;">No items scanned yet.</p>';
+        cartListEl.innerHTML = '<p style="color: #86868b; text-align: center; margin-top: 40px;">Your cart is empty.</p>';
         document.getElementById('subtotal').innerText = '$0.00';
         document.getElementById('total').innerText = '$0.00';
         return;
