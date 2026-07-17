@@ -299,131 +299,23 @@
       if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    // RE-ENGINEERED: Sleek, fluid synthesizer engine utilizing pure Sine wave definitions and exponential volume ramp decays
-    function playSoundEffect(type) {
+    // FIXED: Deleted all audio generators except for the final checkout success chord structure
+    function playCheckoutSuccessSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // 1. ADD ITEM TAPS (Sleek organic water-drop pop)
-        if (type === 'add_item') {
+        const chords = [523.25, 659.25, 783.99, 1174.66]; // C5, E5, G5, D6 harmonic chimes
+        chords.forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(1100, audioCtx.currentTime); 
-          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.06));
+          gain.gain.setValueAtTime(0.05, audioCtx.currentTime + (idx * 0.06));
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.06) + 0.6);
           osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.06);
-        }
-        
-        // 2. QUANTITY ADJUSTMENTS (+ / -) (Soft low-register bubble blip)
-        else if (type === 'adjust_qty') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(780, audioCtx.currentTime); 
-          gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-        }
-
-        // 3. KEYPAD BUTTON TYPING (Deep, satisfying organic surface thud)
-        else if (type === 'keypad_tap') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(330, audioCtx.currentTime); // Low non-intrusive pop
-          gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.04);
-        }
-
-        // 4. BACKSPACE / DELETIONS
-        else if (type === 'keypad_clear') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(260, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.06);
-        }
-
-        // 5. WINDOW DISMISSAL CLOSE REFERENCE
-        else if (type === 'cancel_dismiss') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(380, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.14); // Quiet fluid swoop down
-          gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.14);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.14);
-        }
-
-        // 6. LEADERBOARD POP
-        else if (type === 'leaderboard_shimmer') {
-          const chord = [392.00, 523.25, 659.25]; // Warm spatial ambient tones
-          chord.forEach((freq, idx) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.03));
-            gain.gain.setValueAtTime(0.02, audioCtx.currentTime + (idx * 0.03));
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.03) + 0.3);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(audioCtx.currentTime + (idx * 0.03)); osc.stop(audioCtx.currentTime + (idx * 0.03) + 0.3);
-          });
-        }
-
-        // 7. INACTIVITY TIME RESET COUNTER NOTICES
-        else if (type === 'warning') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-          osc.frequency.setValueAtTime(349.23, audioCtx.currentTime + 0.15);
-          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        }
-
-        // 8. ERROR BLOCK DENIAL REFERENCE (Muted deep bass bump)
-        else if (type === 'error_thud') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(90, audioCtx.currentTime); // Low frequency pulse
-          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-        }
-        
-        // 9. RE-ENGINEERED: Ultra-premium harmonic C-Major 9th ambient transaction success chime structure
-        else if (type === 'premium_checkout_success') {
-          const chords = [523.25, 659.25, 783.99, 1174.66]; // C5, E5, G5, D6 frequencies
-          chords.forEach((freq, idx) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine'; // Pure luxury sine signature
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.06));
-            
-            // Rich acoustic swell and trailing sustain profiles
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime + (idx * 0.06));
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.06) + 0.6);
-            
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(audioCtx.currentTime + (idx * 0.06));
-            osc.stop(audioCtx.currentTime + (idx * 0.06) + 0.6);
-          });
-        }
-      } catch(e) { console.log('Audio pipe tracking muted.'); }
+          osc.start(audioCtx.currentTime + (idx * 0.06));
+          osc.stop(audioCtx.currentTime + (idx * 0.06) + 0.6);
+        });
+      } catch(e) { console.log('Audio disabled.'); }
     }
 
     function resetIdleTimeout() {
@@ -441,7 +333,6 @@
     }
 
     function triggerWarningTimeoutNotification() {
-      playSoundEffect('warning');
       showToastNotification("Are you still checking out? Resetting soon...", false, true);
       warningBannerTimer = setTimeout(() => {
         purgeCartDueToTimeout();
@@ -455,7 +346,6 @@
       closeLeaderboardModal();
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
-      playSoundEffect('cancel_dismiss');
       showToastNotification("Cart cleared due to inactivity.", true);
     }
 
@@ -549,7 +439,6 @@
 
     function openLeaderboardModal() {
       triggerHapticPulse(15);
-      playSoundEffect('leaderboard_shimmer'); 
       const root = document.getElementById('leaderboard-list-root');
       if (!root) return;
       root.innerHTML = '';
@@ -589,7 +478,6 @@
     }
 
     function closeLeaderboardModal() {
-      playSoundEffect('cancel_dismiss'); 
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
 
@@ -655,7 +543,6 @@
         btn.innerText = cat;
         btn.onclick = () => {
           triggerHapticPulse(15); 
-          playSoundEffect('add_item');
           activeCategoryFilter = cat;
           renderCategoryTabs();
           renderCatalog();
@@ -692,7 +579,6 @@
         
         card.onclick = () => {
           triggerHapticPulse(15); 
-          playSoundEffect('add_item'); 
           addToCart(product);
         };
         catalogEl.appendChild(card);
@@ -712,7 +598,6 @@
 
     function adjustQuantity(productId, delta) {
       triggerHapticPulse(15); 
-      playSoundEffect('adjust_qty'); 
       const targetItem = cart.find(item => item.id === productId);
       if (!targetItem) return;
       targetItem.quantity += delta;
@@ -761,12 +646,6 @@
 
     function pressKey(value) {
       triggerHapticPulse(10); 
-      if (value === 'CLEAR' || value === 'BACKSPACE') {
-        playSoundEffect('keypad_clear'); 
-      } else {
-        playSoundEffect('keypad_tap'); 
-      }
-      
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
         field.value = '';
@@ -781,12 +660,10 @@
     function openPaymentModal() { 
       if (cart.length === 0) return; 
       triggerHapticPulse(15);
-      playSoundEffect('add_item');
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
     function closePaymentModal() { 
-      playSoundEffect('cancel_dismiss');
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
     }
@@ -820,7 +697,8 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
-        playSoundEffect('premium_checkout_success');
+        // FIXED: Only trigger synthesized audio on premium checkout success events
+        playCheckoutSuccessSound();
         triggerHapticPulse([40, 40, 40]);
 
         const finalTotal = document.getElementById('total').innerText;
@@ -862,7 +740,6 @@
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
-        playSoundEffect('error_thud'); 
         triggerHapticPulse([100, 50, 100]); 
         showToastNotification("Alpha Number not recognized", true);
       }
