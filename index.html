@@ -51,23 +51,8 @@
     .modal-box { background: white; width: 95%; max-width: 400px; padding: 24px; border-radius: 20px; text-align: center; box-sizing: border-box; }
     .alpha-input { width: 100%; padding: 14px; font-size: 24px; font-weight: bold; border: 1px solid #d2d2d7; border-radius: 10px; margin-bottom: 20px; text-align: center; box-sizing: border-box; background: #f5f5f7; }
 
-    /* On-Screen Keypad Grid Layout */
-    .keypad-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .key-btn {
-      background: #e5e5ea;
-      color: var(--text);
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 22px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .key-btn { background: #e5e5ea; color: var(--text); border: none; border-radius: 12px; padding: 16px; font-size: 22px; font-weight: 600; cursor: pointer; }
     .key-btn:active { background: #d1d1d6; }
     .key-clear { background: #ff3b30; color: white; }
     .key-clear:active { background: #d63027; }
@@ -90,32 +75,20 @@
 
     .offline-blocker { grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
 
-    /* Custom Toast Banner Notification */
     .toast-notification {
-      position: fixed;
-      top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #323232;
-      color: white;
-      padding: 16px 32px;
-      border-radius: 30px;
-      font-size: 16px;
-      font-weight: 600;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      z-index: 2000;
-      transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      text-align: center;
+      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+      background: #323232; color: white; padding: 16px 32px; border-radius: 30px;
+      font-size: 16px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
     }
     .toast-notification.show { top: 30px; }
+    .toast-danger { background: var(--danger); }
   </style>
 </head>
 <body>
 
-  <!-- Self-Hiding Alert Banner Container -->
   <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
-  <!-- Hidden Trigger: Bottom left corner invisible access node -->
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
   <!-- Front End Kiosk View -->
@@ -147,10 +120,8 @@
       <h3>Track Transaction</h3>
       <p>Enter your tracking number using the pad below.</p>
       
-      <!-- Read-Only display field (avoids popping up iPad default keyboard) -->
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
       
-      <!-- Keypad Layout Matrix -->
       <div class="keypad-grid">
         <button class="key-btn" onclick="pressKey('1')">1</button>
         <button class="key-btn" onclick="pressKey('2')">2</button>
@@ -168,7 +139,7 @@
 
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
-        <button class="btn-modal btn-submit" onclick="submitPayment()">Confirm Order</button>
+        <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Confirm Order</button>
       </div>
     </div>
   </div>
@@ -314,7 +285,6 @@
       document.getElementById('total').innerText = `$${total.toFixed(2)}`;
     }
 
-    // Keypad Logic Engine
     function pressKey(value) {
       const field = document.getElementById('alpha-field');
       if (value === 'CLEAR') {
@@ -322,7 +292,6 @@
       } else if (value === 'BACKSPACE') {
         field.value = field.value.slice(0, -1);
       } else {
-        // Enforce maximum length safety check (e.g., 10 characters)
         if (field.value.length < 10) {
           field.value += value;
         }
@@ -339,13 +308,16 @@
       document.getElementById('alpha-field').value = ''; 
     }
 
-    // Self-Dismissing Toast Notification Controller
-    function showToastNotification(message) {
+    function showToastNotification(message, isError = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
+      if (isError) {
+        toast.classList.add('toast-danger');
+      } else {
+        toast.classList.remove('toast-danger');
+      }
       toast.classList.add('show');
       
-      // Auto-hide the message exactly 3 seconds (3000ms) later
       setTimeout(() => {
         toast.classList.remove('show');
       }, 3000);
@@ -355,30 +327,52 @@
       const alphaNumber = document.getElementById('alpha-field').value.trim();
       if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
-      const finalTotal = document.getElementById('total').innerText;
-      const receiptEntry = {
-        timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
-        userAlpha: alphaNumber,
-        summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
-        grandTotal: finalTotal
-      };
+      const submitBtn = document.getElementById('confirm-pay-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Verifying...";
 
-      salesHistory.push(receiptEntry);
-      localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
+      // Contact Google Sheets to verify authorization
+      fetch(`${googleScriptUrl}?checkAlpha=${alphaNumber}`)
+        .then(response => response.json())
+        .then(res => {
+          if (res.authorized) {
+            // Authorized! Proceed with transaction processing
+            const finalTotal = document.getElementById('total').innerText;
+            const receiptEntry = {
+              timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
+              userAlpha: alphaNumber,
+              summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
+              grandTotal: finalTotal
+            };
 
-      fetch(googleScriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(receiptEntry)
-      });
+            // Log locally for manager log visualization
+            salesHistory.push(receiptEntry);
+            localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-      // Show self-hiding popup toast banner
-      showToastNotification(`Order Confirmed for ID: ${alphaNumber}`);
-      
-      cart = [];
-      updateUI();
-      closePaymentModal();
+            // Write row to renamed tab: "Transaction History"
+            fetch(googleScriptUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(receiptEntry)
+            });
+
+            showToastNotification(`Order Confirmed for ID: ${alphaNumber}`, false);
+            cart = [];
+            updateUI();
+            closePaymentModal();
+          } else {
+            showToastNotification("Declined: User ID not authorized", true);
+          }
+        })
+        .catch(err => {
+          console.error("Authorization sync issue", err);
+          showToastNotification("Network error checking ID status", true);
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Confirm Order";
+        });
     }
 
     // BACK END ADMINISTRATIVE CONTROLS
