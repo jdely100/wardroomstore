@@ -1,6 +1,6 @@
 {
   "name": "30th Co Wardroom Store",
-  "short_name": "30th Co Wardroom Store",
+  "short_name": "Wardroom Store",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f5f5f7",
