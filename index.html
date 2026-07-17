@@ -174,7 +174,7 @@
     let products = []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
-    let authorizedUsers = []; 
+    let authorizedUsers = {}; // Key/Value map interface dictionary
 
     function initApp() {
       fetchCloudInventory();
@@ -239,9 +239,9 @@
       fetch(`${googleScriptUrl}?checkAlpha=DOWNLOAD_MASTER_CACHE`)
         .then(response => response.json())
         .then(data => {
-          if (data && Array.isArray(data.masterList)) {
+          if (data && data.masterList) {
             authorizedUsers = data.masterList;
-            console.log("Cached Authorized Users:", authorizedUsers);
+            console.log("Cached Users Map:", authorizedUsers);
             showToastNotification("Authorized users sync complete!", false);
           }
         })
@@ -340,16 +340,17 @@
       const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
       if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
-      const isAuthorized = authorizedUsers.indexOf(alphaNumber) !== -1;
+      // Check key availability within dictionary lookup configuration maps
+      const userProfile = authorizedUsers[alphaNumber];
 
-      if (isAuthorized) {
+      if (userProfile) {
         const finalTotal = document.getElementById('total').innerText;
         const receiptEntry = {
           timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
           userAlpha: alphaNumber,
           summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
           grandTotal: finalTotal,
-          rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) // NEW: Passes array structure to update stock rows
+          rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) 
         };
 
         salesHistory.push(receiptEntry);
@@ -362,7 +363,9 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        showToastNotification(`Thank you!`, false);
+        // FIXED: Personalized thank you toast using downloaded first name column value
+        showToastNotification(`Thank you, ${userProfile.firstName}!`, false);
+        
         cart = [];
         updateUI();
         closePaymentModal();
