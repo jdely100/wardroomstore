@@ -1,6 +1,6 @@
 {
   "name": "My First iPad PWA",
-  "short_name": "iPadPWA",
+  "short_name": "30 Store",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f5f5f7",
