@@ -161,14 +161,16 @@
       border-radius: 24px; border: 1px solid var(--border); margin-top: 20px;
     }
 
+    /* FIXED: Increased font size padding parameters to make checkout success alerts look dominant on iPad screens */
     .toast-notification {
-      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-      background: var(--primary); color: white; padding: 16px 32px; border-radius: 40px;
-      font-size: 15px; font-weight: 700; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+      position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+      background: var(--primary); color: white; padding: 22px 44px; border-radius: 40px;
+      font-size: 22px; font-weight: 800; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
       z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .toast-notification.show { top: 32px; }
-    .toast-danger { background: var(--danger); }
+    .toast-notification.show { top: 40px; }
+    .toast-danger { background: var(--danger); font-size: 16px; font-weight: 700; padding: 16px 32px; }
 
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -185,7 +187,8 @@
 
   <div class="catalog-side">
     <div class="section-header">
-      <h2>Add Items to Cart</h2>
+      <!-- FIXED: Updated Branding Heading text node -->
+      <h2>30th Company Wardroom Store</h2>
       <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
     </div>
     <div class="category-bar" id="category-tabs-container"></div>
@@ -243,7 +246,7 @@
         <div id="admin-inventory-list"></div>
       </div>
       <div class="admin-column">
-        <h3 style="margin:0 0 16px 0; font-size:18px;">Device Session Logs</h3>
+        <h3>Device Session Logs</h3>
         <div id="admin-logs-list" style="flex:1;">
           <p style="color:var(--text-muted); font-size:14px;">No logs indexed.</p>
         </div>
@@ -259,7 +262,7 @@
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
     let authorizedUsers = {}; 
-    let activeCategoryFilter = "ALL";
+    let activeCategoryFilter = "All"; // FIXED: Capitalized default selector status
 
     function initApp() {
       fetchCloudInventory();
@@ -282,7 +285,6 @@
           return response.json();
         })
         .then(data => {
-          // FIXED: Hardened payload validation safeguards 
           if (data && Array.isArray(data) && data.length > 0) {
             products = data;
             indicator.className = 'sync-status sync-success';
@@ -337,9 +339,9 @@
       if (!container) return;
       container.innerHTML = '';
       
-      // FIXED: Safeguard filter build layout loops against row entry typos
       const validCategories = products.filter(p => p && p.category).map(p => p.category);
-      const uniqueCategories = ["ALL", ...new Set(validCategories)];
+      // FIXED: Swapped raw uppercase 'ALL' for proper typography styling 'All'
+      const uniqueCategories = ["All", ...new Set(validCategories)];
       
       uniqueCategories.forEach(cat => {
         const btn = document.createElement('button');
@@ -359,12 +361,12 @@
       if (!catalogEl) return;
       catalogEl.innerHTML = '';
       
-      const filteredProducts = activeCategoryFilter === "ALL" 
+      const filteredProducts = activeCategoryFilter === "All" 
         ? products 
         : products.filter(p => p.category === activeCategoryFilter);
       
       filteredProducts.forEach(product => {
-        if (!product || !product.name) return; // Skip broken entities smoothly
+        if (!product || !product.name) return; 
         
         const card = document.createElement('div');
         card.className = 'product-card';
@@ -462,11 +464,14 @@
       document.getElementById('alpha-field').value = ''; 
     }
 
+    // FIXED: Upgraded timeline parameter to extend visibility from 3 to 5.5 seconds
     function showToastNotification(message, isError = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
       toast.className = isError ? 'toast-notification show toast-danger' : 'toast-notification show';
-      setTimeout(() => { toast.className = 'toast-notification'; }, 3000);
+      
+      const visibilityDuration = isError ? 3000 : 5500; // Success alerts stay visible for 5.5 seconds
+      setTimeout(() => { toast.className = 'toast-notification'; }, visibilityDuration);
     }
 
     function submitPayment() {
@@ -495,7 +500,10 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        showToastNotification(`Welcome, ${userProfile.firstName}! Checkout compiled.`, false);
+        // FIXED: Updated checkout completion alert messaging profile
+        var dynamicGreeting = userProfile.firstName ? userProfile.firstName : "Shipmate";
+        showToastNotification(`Thank you, ${dynamicGreeting}!`, false);
+        
         cart = [];
         updateUI();
         closePaymentModal();
