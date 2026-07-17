@@ -11,6 +11,7 @@
       --success: #34c759;
       --bg: #f5f5f7;
       --text: #1d1d1f;
+      --overlay: rgba(0, 0, 0, 0.4);
     }
     
     body {
@@ -24,7 +25,7 @@
       overflow: hidden;
     }
 
-    /* Split Screen Layout for iPad landscape orientation */
+    /* Split Screen Layout for iPad */
     .catalog-side {
       flex: 1.5;
       padding: 24px;
@@ -117,17 +118,96 @@
       cursor: pointer;
       margin-top: 16px;
     }
+
+    /* iOS-Style Modal Popup Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: var(--overlay);
+      display: none; /* Hidden by default */
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-box {
+      background: white;
+      width: 90%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .modal-box h3 {
+      margin-top: 0;
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    .modal-box p {
+      color: #86868b;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .alpha-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #d2d2d7;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      text-transform: uppercase; /* iPad keyboard input looks standardized */
+      box-sizing: border-box;
+    }
+
+    .alpha-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-modal {
+      flex: 1;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      background: #e5e5ea;
+      color: var(--text);
+    }
+
+    .btn-submit {
+      background: var(--primary);
+      color: white;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Left: Product Selection Pane -->
+  <!-- Left Side: Product Catalog Matrix -->
   <div class="catalog-side">
     <h2>Tap items to scan</h2>
     <div class="grid" id="catalog"></div>
   </div>
 
-  <!-- Right: Cart & Order Breakdown -->
+  <!-- Right Side: Live Cart Summary -->
   <div class="receipt-side">
     <div style="padding: 24px 24px 0 24px;"><h2>Current Order</h2></div>
     <div class="receipt-items" id="cart-list">
@@ -138,12 +218,25 @@
       <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
       <div class="total-row"><span>Tax (8%)</span><span id="tax">$0.00</span></div>
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
-      <button class="btn-pay" onclick="checkout()">Complete Payment</button>
+      <button class="btn-pay" onclick="openPaymentModal()">Complete Payment</button>
+    </div>
+  </div>
+
+  <!-- Alpha Tracking Modal Popup -->
+  <div class="modal-overlay" id="payment-modal">
+    <div class="modal-box">
+      <h3>Track Transaction</h3>
+      <p>Please enter your Alpha Number to tie your identity to this checkout session.</p>
+      <input type="text" class="alpha-input" id="alpha-field" placeholder="e.g. A1234B" autocomplete="off" autocapitalize="characters">
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
+        <button class="btn-modal btn-submit" onclick="submitPayment()">Confirm Order</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // 1. Mock Data Matrix
+    // 1. Mock Catalog Data
     const products = [
       { id: 1, name: 'Apple', price: 0.99 },
       { id: 2, name: 'Banana', price: 0.59 },
@@ -153,10 +246,11 @@
       { id: 6, name: 'Avocado', price: 1.99 }
     ];
 
-    // 2. State Controller Array
+    // 2. Active Application States
     let cart = [];
+    let salesHistory = []; // Local record tracking past completed checkouts
 
-    // 3. Render Catalog UI elements
+    // 3. Render Catalog
     const catalogEl = document.getElementById('catalog');
     products.forEach(product => {
       const card = document.createElement('div');
@@ -166,7 +260,7 @@
       catalogEl.appendChild(card);
     });
 
-    // 4. Cart Addition logic
+    // 4. Cart State Mutation
     function addToCart(product) {
       const existingItem = cart.find(item => item.id === product.id);
       if (existingItem) {
@@ -177,7 +271,7 @@
       updateUI();
     }
 
-    // 5. Compute calculations and refresh display state
+    // 5. Redraw Receipt State
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
       if (cart.length === 0) {
@@ -215,14 +309,54 @@
       document.getElementById('total').innerText = `$${total.toFixed(2)}`;
     }
 
-    function checkout() {
-      if (cart.length === 0) return alert('Your cart is empty!');
-      alert('Transaction Successful! Thank you.');
-      cart = [];
-      updateUI();
+    // 6. Modal Interactions & Validation Architecture
+    const modalEl = document.getElementById('payment-modal');
+    const alphaField = document.getElementById('alpha-field');
+
+    function openPaymentModal() {
+      if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+      }
+      modalEl.style.display = 'flex';
+      alphaField.focus(); // Pulls up iPad on-screen keyboard
     }
 
-    // Register Service Worker from step 1
+    function closePaymentModal() {
+      modalEl.style.display = 'none';
+      alphaField.value = '';
+    }
+
+    function submitPayment() {
+      const alphaNumber = alphaField.value.trim().toUpperCase();
+      
+      if (!alphaNumber) {
+        alert('Please provide a valid Alpha Number to continue.');
+        return;
+      }
+
+      // Build out the final immutable transaction entry
+      const finalTotal = document.getElementById('total').innerText;
+      const receiptEntry = {
+        timestamp: new Date().toISOString(),
+        userAlpha: alphaNumber,
+        purchasedItems: [...cart],
+        grandTotal: finalTotal
+      };
+
+      // Push execution payload to memory bank array
+      salesHistory.push(receiptEntry);
+      console.log('Transaction logged successfully:', receiptEntry);
+
+      alert(`Transaction Complete!\nLogged to Alpha: ${alphaNumber}\nTotal: ${finalTotal}`);
+      
+      // Reset layout environment for the next customer
+      cart = [];
+      updateUI();
+      closePaymentModal();
+    }
+
+    // Register PWA Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
     }
