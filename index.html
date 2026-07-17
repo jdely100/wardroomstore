@@ -7,124 +7,199 @@
   <link rel="manifest" href="./manifest.json">
   <style>
     :root {
-      --primary: #0071e3;
-      --success: #34c759;
-      --bg: #f5f5f7;
-      --text: #1d1d1f;
-      --overlay: rgba(0, 0, 0, 0.4);
-      --danger: #ff3b30;
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --success: #10b981;
+      --bg: #f8fafc;
+      --panel-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --overlay: rgba(15, 23, 42, 0.6);
+      --danger: #ef4444;
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0; padding: 0;
       background-color: var(--bg); color: var(--text);
       display: flex; height: 100vh; overflow: hidden; position: relative;
+      letter-spacing: -0.01em;
     }
 
     .admin-trigger {
-      position: absolute; bottom: 10px; left: 10px; width: 30px; height: 30px; background: transparent; border: none; cursor: pointer; z-index: 10;
+      position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10;
     }
 
-    .catalog-side { flex: 2.2; padding: 24px; overflow-y: auto; border-right: 1px solid #d2d2d7; }
-    .receipt-side { flex: 0.9; background: white; display: flex; flex-direction: column; height: 100%; min-width: 280px; }
-    h2 { margin-top: 0; font-weight: 600; }
+    /* Core Layout Balance Blocks */
+    .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; }
+    .receipt-side { 
+      flex: 0.9; background: var(--panel-bg); display: flex; flex-direction: column; height: 100%; min-width: 340px; 
+      box-shadow: -4px 0 24px rgba(15, 23, 42, 0.04); border-left: 1px solid var(--border); z-index: 2;
+    }
     
-    /* NEW: Category Filtration Navigation Bar Layout */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+    }
+    h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
+    
+    /* Premium Category Bar Slider */
     .category-bar {
-      display: flex; gap: 10px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 8px;
-      -webkit-overflow-scrolling: touch;
+      display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
+    .category-bar::-webkit-scrollbar { display: none; }
+    
     .category-tab {
-      background: #e5e5ea; color: var(--text); padding: 8px 16px; border-radius: 20px;
-      font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; border: none;
-      transition: background 0.15s ease, color 0.15s ease;
+      background: #ffffff; color: var(--text-muted); padding: 10px 20px; border-radius: 24px;
+      font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid var(--border);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
+    .category-tab:hover { border-color: var(--text-muted); color: var(--text); }
     .category-tab.active {
-      background: var(--primary); color: white;
+      background: var(--primary); color: white; border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
     }
 
+    /* Enterprise Grid Spec */
     .grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-      gap: 16px; 
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+      gap: 20px; 
     }
     
     .product-card {
-      background: white; border-radius: 16px; padding: 14px 12px; text-align: center; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;
+      background: var(--panel-bg); border-radius: 20px; padding: 16px; text-align: center; 
+      border: 1px solid var(--border); cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: transform 0.1s ease; min-height: 120px; box-sizing: border-box;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 140px; box-sizing: border-box;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
     }
-    .product-card:active { transform: scale(0.97); }
+    .product-card:hover { 
+      transform: translateY(-2px); border-color: #cbd5e1;
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+    }
+    .product-card:active { transform: translateY(0) scale(0.98); }
     
     .product-img {
-      width: 80px; height: 80px; object-fit: cover; border-radius: 8px;
-      margin-bottom: 10px; background: #f5f5f7;
+      width: 90px; height: 90px; object-fit: cover; border-radius: 12px;
+      margin-bottom: 12px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.02);
     }
-    .product-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-    .product-price { color: var(--primary); font-weight: bold; font-size: 15px; }
+    .product-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+    .product-price { color: var(--accent); font-weight: 700; font-size: 15px; }
     
-    .receipt-items { flex: 1; overflow-y: auto; padding: 24px; }
+    /* Cart Area Refinements */
+    .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); }
+    .receipt-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
     
     .cart-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 0; border-bottom: 1px solid #e5e5ea;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
     }
-    .cart-item-controls { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+    .cart-item-title { font-weight: 600; font-size: 15px; color: var(--text); margin-bottom: 4px; }
+    .cart-item-controls { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    
     .qty-btn {
-      background: #e5e5ea; color: var(--text); border: none; border-radius: 50%;
-      width: 28px; height: 28px; font-size: 16px; font-weight: bold;
+      background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 50%;
+      width: 32px; height: 32px; font-size: 16px; font-weight: 600;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: all 0.15s ease;
     }
-    .qty-btn:active { background: #d1d1d6; }
+    .qty-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+    .qty-btn:active { background: #cbd5e1; }
+    
+    .qty-display { font-weight: 700; min-width: 20px; text-align: center; font-size: 14px; color: var(--text); }
+    .cart-item-price { font-weight: 700; font-size: 16px; color: var(--text); text-align: right; }
 
-    .totals-box { padding: 24px; background: var(--bg); border-top: 1px solid #d2d2d7; }
-    .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; border-top: none; }
+    /* Totals Summary Card block */
+    .totals-box { 
+      padding: 24px; background: #f8fafc; border-top: 1px solid var(--border);
+      margin: 16px; border-radius: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+    }
+    .total-row { display: flex; justify-content: space-between; align-items: center; }
+    .grand-total { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; }
     
     .btn-pay {
-      display: block; width: 100%; background: var(--success); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 16px;
+      display: block; width: 100%; background: var(--success); color: white; border: none; border-radius: 14px; 
+      padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 20px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
+    .btn-pay:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
+    .btn-pay:active { transform: translateY(0); }
 
+    /* Premium Modal Engine Styles */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); display: none; align-items: center; justify-content: center; z-index: 999;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
+      display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
     }
-    .modal-box { background: white; width: 95%; max-width: 400px; padding: 24px; border-radius: 20px; text-align: center; box-sizing: border-box; }
-    .alpha-input { width: 100%; padding: 14px; font-size: 24px; font-weight: bold; border: 1px solid #d2d2d7; border-radius: 10px; margin-bottom: 20px; text-align: center; box-sizing: border-box; background: #f5f5f7; }
+    .modal-box { 
+      background: white; width: 95%; max-width: 420px; padding: 32px; border-radius: 28px; 
+      text-align: center; box-sizing: border-box; border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    }
+    .modal-box h3 { margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: var(--primary); }
+    .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
+    
+    .alpha-input { 
+      width: 100%; padding: 16px; font-size: 28px; font-weight: 800; border: 2px solid var(--border); 
+      border-radius: 16px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
+      background: #f8fafc; color: var(--primary); letter-spacing: 2px;
+      transition: border-color 0.2s ease;
+    }
+    .alpha-input:focus { border-color: var(--accent); outline: none; }
 
-    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-    .key-btn { background: #e5e5ea; color: var(--text); border: none; border-radius: 12px; padding: 16px; font-size: 22px; font-weight: 600; cursor: pointer; }
-    .key-btn:active { background: #d1d1d6; }
-    .key-clear { background: #ff3b30; color: white; }
-    .key-clear:active { background: #d63027; }
+    /* Keypad Overhaul */
+    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .key-btn { 
+      background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 16px; 
+      padding: 18px; font-size: 22px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+    }
+    .key-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+    .key-btn:active { background: #cbd5e1; transform: scale(0.96); }
+    .key-clear { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
+    .key-clear:hover { background: #fee2e2; }
+    .key-clear:active { background: #fca5a5; }
 
     .modal-actions { display: flex; gap: 12px; }
-    .btn-modal { flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; }
-    .btn-cancel { background: #e5e5ea; color: var(--text); }
-    .btn-submit { background: var(--primary); color: white; }
+    .btn-modal { flex: 1; padding: 16px; font-size: 15px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; transition: all 0.15s ease; }
+    .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-cancel:hover { background: #e2e8f0; color: var(--text); }
+    .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
+    .btn-submit:hover { background: #1e293b; }
 
-    .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f5f5f7; z-index: 1000; display: none; flex-direction: column; }
-    .admin-header { background: white; padding: 20px; border-bottom: 1px solid #d2d2d7; display: flex; justify-content: space-between; align-items: center; }
-    .admin-content { flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 20px; }
-    .admin-column { flex: 1; background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-    .log-item { padding: 12px; border-bottom: 1px solid #e5e5ea; font-size: 14px; }
-    
-    .sync-status { font-size: 14px; font-weight: bold; margin-bottom: 10px; }
-    .sync-success { color: var(--success); }
-    .sync-loading { color: var(--primary); }
-    .sync-error { color: var(--danger); }
+    /* Modernized Indicator Pin */
+    .sync-status { 
+      font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .sync-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .sync-loading { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .sync-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
 
-    .offline-blocker { grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .offline-blocker { 
+      grid-column: 1 / -1; text-align: center; padding: 48px; background: white; 
+      border-radius: 24px; border: 1px solid var(--border); margin-top: 20px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+    }
 
+    /* Premium Toast Popups */
     .toast-notification {
       position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-      background: #323232; color: white; padding: 16px 32px; border-radius: 30px;
-      font-size: 16px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      background: var(--primary); color: white; padding: 16px 32px; border-radius: 40px;
+      font-size: 15px; font-weight: 700; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
       z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
     }
-    .toast-notification.show { top: 30px; }
-    .toast-danger { background: var(--danger); }
+    .toast-notification.show { top: 32px; }
+    .toast-danger { background: var(--danger); box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.25); }
+
+    /* Administrative Dashboard Overlay Panel */
+    .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
+    .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .admin-content { flex: 1; display: flex; overflow: hidden; padding: 32px; gap: 32px; box-sizing: border-box; }
+    .admin-column { flex: 1; background: white; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); }
+    .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -133,36 +208,37 @@
 
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
-  <!-- Front End Kiosk View -->
+  <!-- Storefront Grid Layout -->
   <div class="catalog-side">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
-      <h2 style="margin:0;">Add Items to Cart</h2>
-      <div id="sync-indicator" class="sync-status sync-loading">Connecting to spreadsheet...</div>
+    <div class="section-header">
+      <h2>Add Items to Cart</h2>
+      <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
     </div>
     
-    <!-- NEW: Categories Anchor Injection Bar Node -->
+    <!-- Dynamic Category Filter Track -->
     <div class="category-bar" id="category-tabs-container"></div>
     
     <div class="grid" id="catalog"></div>
   </div>
 
+  <!-- Checkout Sidebar Display -->
   <div class="receipt-side">
-    <div style="padding: 24px 24px 0 24px;"><h2>Your Cart</h2></div>
+    <div class="cart-header"><h2>Your Cart</h2></div>
     <div class="receipt-items" id="cart-list">
-      <p style="color: #86868b; text-align: center; margin-top: 40px;">Your cart is empty.</p>
+      <p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>
     </div>
     
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
-      <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
+      <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e2e8f0; color:var(--text-muted); cursor:not-allowed; box-shadow:none;">Initializing...</button>
     </div>
   </div>
 
-  <!-- Alpha Tracking Modal -->
+  <!-- Keypad Identity Validation Pop-Up -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
       <h3>Alpha Number</h3>
-      <p>Enter your Alpha Number using the pad below.</p>
+      <p>Enter your Alpha Number below to authorize checkout.</p>
       
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
       
@@ -183,32 +259,32 @@
 
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
-        <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Checkout</button>
+        <button class="btn-modal btn-submit" id="confirm-pay-btn" onclick="submitPayment()">Confirm & Pay</button>
       </div>
     </div>
   </div>
 
-  <!-- BACK END ADMINISTRATIVE INTERFACE -->
+  <!-- Master Management Overlay Panel -->
   <div class="admin-panel" id="admin-panel">
     <div class="admin-header">
       <h2>Manager Audit System</h2>
-      <button class="btn-modal btn-cancel" style="max-width: 120px;" onclick="closeAdmin()">Exit System</button>
+      <button class="btn-modal btn-cancel" style="max-width: 140px; padding: 12px;" onclick="closeAdmin()">Exit Dashboard</button>
     </div>
     <div class="admin-content">
       <div class="admin-column">
-        <h3>Cloud Connections Link Active</h3>
-        <p style="color:#86868b; line-height: 1.5; margin-bottom: 15px;">Your item pricing and user access databases are driven via your Google Sheet.</p>
-        <button class="btn-modal btn-submit" style="width:100%; background: var(--primary); margin-bottom: 10px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
-        <button class="btn-modal btn-submit" style="width:100%; background: #5856d6;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
-        <h3 style="margin-top:30px;">Active Storefront Directory</h3>
+        <h3 style="margin:0 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
+        <p style="color:var(--text-muted); line-height: 1.5; font-size:14px; margin:0 0 20px 0;">This terminal pulls pricing matrices dynamically from your cloud spreadsheet infrastructure sheets.</p>
+        <button class="btn-modal btn-submit" style="width:100%; margin-bottom: 12px; padding:14px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
+        <button class="btn-modal btn-submit" style="width:100%; background: var(--accent); padding:14px;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
+        <h3 style="margin-top:32px; margin-bottom:12px; font-size:18px;">Active Storefront Directory</h3>
         <div id="admin-inventory-list"></div>
       </div>
       <div class="admin-column">
-        <h3>Historic Audit Logs</h3>
+        <h3 style="margin:0 0 16px 0; font-size:18px;">Device Session Logs</h3>
         <div id="admin-logs-list" style="flex:1;">
-          <p style="color:#86868b">No transactions recorded yet.</p>
+          <p style="color:var(--text-muted); font-size:14px;">No logs indexed.</p>
         </div>
-        <button class="btn-modal btn-cancel" style="background: var(--danger); color: white; margin-top: 12px;" onclick="clearLogs()">Wipe Local Device History</button>
+        <button class="btn-modal btn-cancel" style="background: var(--danger); color: white; margin-top: 16px; border:none;" onclick="clearLogs()">Wipe Local Device History</button>
       </div>
     </div>
   </div>
@@ -220,7 +296,7 @@
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
     let authorizedUsers = {}; 
-    let activeCategoryFilter = "ALL"; // Tracks current selection framework state
+    let activeCategoryFilter = "ALL";
 
     function initApp() {
       fetchCloudInventory();
@@ -234,7 +310,7 @@
       const payBtn = document.getElementById('pay-btn');
 
       indicator.className = 'sync-status sync-loading';
-      indicator.innerText = 'Connecting to spreadsheet...';
+      indicator.innerText = 'Syncing...';
       catalogEl.innerHTML = '';
 
       fetch(googleScriptUrl)
@@ -243,7 +319,7 @@
           if (data && data.length > 0 && !data.error) {
             products = data;
             indicator.className = 'sync-status sync-success';
-            indicator.innerText = '● Online';
+            indicator.innerText = '● Connected';
             
             payBtn.disabled = false;
             payBtn.style.background = 'var(--success)';
@@ -251,32 +327,31 @@
             payBtn.style.cursor = 'pointer';
             payBtn.innerText = 'Checkout';
 
-            // Generate category filter bar dynamically from sheet content parsing
             renderCategoryTabs();
             renderCatalog();
           } else {
-            throw new Error("Invalid structure data");
+            throw new Error("Payload validation breach.");
           }
         })
         .catch(err => {
-          console.error("Cloud connection failed.", err);
+          console.error("Cloud synchronization broken.", err);
           products = [];
           indicator.className = 'sync-status sync-error';
-          indicator.innerText = '● Connection Failure - Check Wi-Fi';
+          indicator.innerText = '● Terminal Offline';
 
           catalogEl.innerHTML = `
             <div class="offline-blocker">
-              <h3 style="color:var(--danger); margin-top:0;">Database Offline</h3>
-              <p style="color:#86868b; margin-bottom:20px;">The iPad checkout terminal requires an active internet connection to retrieve inventory prices.</p>
-              <button class="btn-modal btn-submit" style="max-width:200px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection</button>
+              <h3 style="color:var(--danger); margin-top:0; font-size:20px;">Database Connection Failed</h3>
+              <p style="color:var(--text-muted); margin-bottom:24px; font-size:15px; line-height:1.4;">The checkout architecture requires network initialization access to cache row assets.</p>
+              <button class="btn-modal btn-submit" style="max-width:220px; display:inline-block;" onclick="fetchCloudInventory()">Retry Connection Reference</button>
             </div>
           `;
 
           payBtn.disabled = true;
-          payBtn.style.background = '#e5e5ea';
-          payBtn.style.color = '#86868b';
+          payBtn.style.background = '#e2e8f0';
+          payBtn.style.color = var(--text-muted);
           payBtn.style.cursor = 'not-allowed';
-          payBtn.innerText = 'Connection Required';
+          payBtn.innerText = 'Sync Required';
           
           cart = [];
           updateUI();
@@ -289,20 +364,18 @@
         .then(data => {
           if (data && data.masterList) {
             authorizedUsers = data.masterList;
-            console.log("Cached Users Map Loaded.");
+            console.log("Profiles cached smoothly.");
           }
         })
         .catch(err => {
-          console.error("Error downloading user database cache", err);
+          console.error("User indexing stream dropped.", err);
         });
     }
 
-    // NEW: Compiles distinct spreadsheet categories and renders a horizontal scrolling navigation bar
     function renderCategoryTabs() {
       const container = document.getElementById('category-tabs-container');
       container.innerHTML = '';
       
-      // Extract unique categories from product list data array
       const uniqueCategories = ["ALL", ...new Set(products.map(p => p.category))];
       
       uniqueCategories.forEach(cat => {
@@ -311,19 +384,17 @@
         btn.innerText = cat;
         btn.onclick = () => {
           activeCategoryFilter = cat;
-          renderCategoryTabs(); // Redraw menu states
-          renderCatalog();      // Re-filter grid display layout views
+          renderCategoryTabs();
+          renderCatalog();
         };
         container.appendChild(btn);
       });
     }
 
-    // UPDATED: Dynamically mirrors filtration selections using conditional array passes
     function renderCatalog() {
       const catalogEl = document.getElementById('catalog');
       catalogEl.innerHTML = '';
       
-      // Filter catalog down based on active selection state parameters
       const filteredProducts = activeCategoryFilter === "ALL" 
         ? products 
         : products.filter(p => p.category === activeCategoryFilter);
@@ -374,7 +445,7 @@
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
       if (cart.length === 0) {
-        cartListEl.innerHTML = '<p style="color: #86868b; text-align: center; margin-top: 40px;">Your cart is empty.</p>';
+        cartListEl.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>';
         document.getElementById('total').innerText = '$0.00';
         return;
       }
@@ -389,15 +460,15 @@
         row.className = 'cart-item';
         row.innerHTML = `
           <div>
-            <strong>${item.name}</strong><br>
+            <div class="cart-item-title">${item.name}</div>
             <div class="cart-item-controls">
               <button class="qty-btn" onclick="adjustQuantity(${item.id}, -1)">−</button>
-              <span style="font-weight:600; min-width:16px; text-align:center;">${item.quantity}</span>
+              <span class="qty-display">${item.quantity}</span>
               <button class="qty-btn" onclick="adjustQuantity(${item.id}, 1)">+</button>
-              <small style="color:#86868b; margin-left:8px;">× $${item.price.toFixed(2)}</small>
+              <small style="color:var(--text-muted); margin-left:6px;">× $${item.price.toFixed(2)}</small>
             </div>
           </div>
-          <strong>$${itemTotal.toFixed(2)}</strong>
+          <div class="cart-item-price">$${itemTotal.toFixed(2)}</div>
         `;
         cartListEl.appendChild(row);
       });
@@ -432,20 +503,17 @@
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
       if (isError) {
-        toast.classList.add('toast-danger');
+        toast.className = 'toast-notification show toast-danger';
       } else {
-        toast.classList.remove('toast-danger');
+        toast.className = 'toast-notification show';
       }
-      toast.classList.add('show');
       
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
+      setTimeout(() => { toast.className = 'toast-notification'; }, 3000);
     }
 
     function submitPayment() {
       const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
-      if (!alphaNumber) return alert('Please input an ID using the keypad.');
+      if (!alphaNumber) return alert('Verification parameter required.');
 
       const userProfile = authorizedUsers[alphaNumber];
 
@@ -469,17 +537,17 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        showToastNotification(`Thank you, ${userProfile.firstName}!`, false);
+        showToastNotification(`Welcome, ${userProfile.firstName}! Order processed.`, false);
         
         cart = [];
         updateUI();
         closePaymentModal();
       } else {
-        showToastNotification("Alpha Number not Recognized", true);
+        showToastNotification("Alpha Number not recognized", true);
       }
     }
 
-    // BACK END ADMINISTRATIVE CONTROLS
+    // ADMINISTRATIVE ACCESS OVERLAYS
     const ADMIN_PASSWORD = "1234";
 
     function promptAdminPassword() {
@@ -503,13 +571,13 @@
       const listEl = document.getElementById('admin-inventory-list');
       listEl.innerHTML = '';
       if (products.length === 0) {
-        listEl.innerHTML = '<p style="color:var(--danger)">Offline: No inventory loaded.</p>';
+        listEl.innerHTML = '<p style="color:var(--danger)">Offline: Matrix database broken.</p>';
         return;
       }
       products.forEach((prod) => {
         const row = document.createElement('div');
         row.className = 'log-item';
-        row.innerHTML = `<span><strong>${prod.name}</strong> - $${prod.price.toFixed(2)}</span>`;
+        row.innerHTML = `<span><strong>${prod.name}</strong> - $${prod.price.toFixed(2)} <small style="color:var(--text-muted)">(${prod.category})</small></span>`;
         listEl.appendChild(row);
       });
     }
@@ -517,15 +585,15 @@
     function renderAdminLogs() {
       const logsEl = document.getElementById('admin-logs-list');
       if (salesHistory.length === 0) {
-        logsEl.innerHTML = '<p style="color:#86868b">No transactions recorded yet.</p>';
+        logsEl.innerHTML = '<p style="color:var(--text-muted)">No metrics recorded.</p>';
         return;
       }
       logsEl.innerHTML = '';
       [...salesHistory].reverse().forEach(log => {
         const item = document.createElement('div');
         item.className = 'log-item';
-        item.innerHTML = `<strong>[${log.timestamp}]</strong> - ID: <u>${log.userAlpha}</u><br>
-                          <small style="color:#86868b">${log.summary}</small><br>
+        item.innerHTML = `<strong>[${log.timestamp}]</strong> - Account: <u>${log.userAlpha}</u><br>
+                          <small style="color:var(--text-muted)">${log.summary}</small><br>
                           <strong>Total Charged: ${log.grandTotal}</strong>`;
         logsEl.appendChild(item);
       });
