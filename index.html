@@ -36,10 +36,42 @@
     }
     .product-price { color: var(--primary); font-weight: bold; margin-top: 8px; }
     .receipt-items { flex: 1; overflow-y: auto; padding: 24px; }
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e5ea; }
+    
+    /* Cart Item Layout with Interactive Controls */
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e5ea;
+    }
+    
+    .cart-item-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .qty-btn {
+      background: #e5e5ea;
+      color: var(--text);
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .qty-btn:active { background: #d1d1d6; }
+
     .totals-box { padding: 24px; background: var(--bg); border-top: 1px solid #d2d2d7; }
     .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .grand-total { font-size: 20px; font-weight: bold; margin-top: 12px; padding-top: 12px; border-top: 1px solid #d2d2d7; }
+    .grand-total { font-size: 24px; font-weight: bold; margin-top: 0; padding-top: 0; border-top: none; }
     
     .btn-pay {
       display: block; width: 100%; background: var(--success); color: white; border: none; border-radius: 12px; padding: 16px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 16px;
@@ -107,7 +139,7 @@
     </div>
     
     <div class="totals-box">
-      <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+      <!-- Subtotal row completely removed here -->
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e5e5ea; color:#86868b; cursor:not-allowed;">Waiting for Connection...</button>
     </div>
@@ -174,7 +206,7 @@
     let products = []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
-    let authorizedUsers = {}; // Key/Value map interface dictionary
+    let authorizedUsers = {}; 
 
     function initApp() {
       fetchCloudInventory();
@@ -273,29 +305,52 @@
       updateUI();
     }
 
+    // Direct Quantity Alteration Handlers
+    function adjustQuantity(productId, delta) {
+      const targetItem = cart.find(item => item.id === productId);
+      if (!targetItem) return;
+
+      targetItem.quantity += delta;
+      
+      // If balance drops to 0 or below, scrub the row completely
+      if (targetItem.quantity <= 0) {
+        cart = cart.filter(item => item.id !== productId);
+      }
+      updateUI();
+    }
+
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
       if (cart.length === 0) {
         cartListEl.innerHTML = '<p style="color: #86868b; text-align: center; margin-top: 40px;">Your cart is empty.</p>';
-        document.getElementById('subtotal').innerText = '$0.00';
         document.getElementById('total').innerText = '$0.00';
         return;
       }
 
       cartListEl.innerHTML = '';
-      let subtotal = 0;
+      let runningTotal = 0;
 
       cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
+        runningTotal += itemTotal;
         const row = document.createElement('div');
         row.className = 'cart-item';
-        row.innerHTML = `<div><strong>${item.name}</strong><br><small style="color:#86868b">$${item.price.toFixed(2)} x ${item.quantity}</small></div><strong>$${itemTotal.toFixed(2)}</strong>`;
+        row.innerHTML = `
+          <div>
+            <strong>${item.name}</strong><br>
+            <div class="cart-item-controls">
+              <button class="qty-btn" onclick="adjustQuantity(${item.id}, -1)">−</button>
+              <span style="font-weight:600; min-width:16px; text-align:center;">${item.quantity}</span>
+              <button class="qty-btn" onclick="adjustQuantity(${item.id}, 1)">+</button>
+              <small style="color:#86868b; margin-left:8px;">× $${item.price.toFixed(2)}</small>
+            </div>
+          </div>
+          <strong>$${itemTotal.toFixed(2)}</strong>
+        `;
         cartListEl.appendChild(row);
       });
 
-      document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-      document.getElementById('total').innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById('total').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
     function pressKey(value) {
@@ -340,7 +395,6 @@
       const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
       if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
-      // Check key availability within dictionary lookup configuration maps
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile) {
@@ -363,7 +417,6 @@
           body: JSON.stringify(receiptEntry)
         });
 
-        // FIXED: Personalized thank you toast using downloaded first name column value
         showToastNotification(`Thank you, ${userProfile.firstName}!`, false);
         
         cart = [];
