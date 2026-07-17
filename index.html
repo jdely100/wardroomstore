@@ -17,7 +17,6 @@
       --border: #e2e8f0;
       --overlay: rgba(15, 23, 42, 0.6);
       --danger: #ef4444;
-      --warning: #f59e0b;
     }
     
     body {
@@ -149,14 +148,14 @@
     .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
     .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
 
+    /* FIXED: Low profile business-as-usual status bar layout tweaks */
     .sync-status { 
       font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
     }
-    .sync-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-    .sync-loading { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .sync-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
-    .sync-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .sync-success { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .sync-loading { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .sync-subtle-ready { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
 
     .toast-notification {
       position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
@@ -265,7 +264,6 @@
     let isSyncingQueue = false;
 
     function initApp() {
-      // Seed UI instantly using device localStorage cache if available
       if (products.length > 0) {
         setupInterfaceOnlineMode();
         renderCategoryTabs();
@@ -276,7 +274,6 @@
       downloadAuthorizedUsers(); 
       updateUI();
       
-      // Background worker interval loop runs network and sync queries every 15 seconds
       setInterval(() => {
         checkNetworkAndSyncQueue();
       }, 15000);
@@ -308,7 +305,6 @@
             products = data;
             isTerminalOnline = true;
             
-            // Commit to device storage so catalog works completely offline next time
             localStorage.setItem('kiosk_products_cache', JSON.stringify(products));
             
             updateNetworkIndicatorStatus();
@@ -316,12 +312,11 @@
             renderCategoryTabs();
             renderCatalog();
             
-            // Trigger an immediate check to dump backlog if online
             checkNetworkAndSyncQueue();
           }
         })
         .catch(err => {
-          console.log("Cloud sync paused. Relying on local memory buffers.");
+          console.log("Cloud sync paused. Relying on local cache memory.");
           isTerminalOnline = false;
           updateNetworkIndicatorStatus();
           
@@ -333,26 +328,25 @@
             document.getElementById('catalog').innerHTML = `
               <div style="grid-column: 1/-1; text-align:center; padding:48px; background:white; border-radius:24px; border:1px solid var(--border);">
                 <h3 style="color:var(--danger); margin:0 0 10px 0;">First-time Setup Required</h3>
-                <p style="color:var(--text-muted); margin:0;">Connect to Wi-Fi to pull your inventory database down for the first time.</p>
+                <p style="color:var(--text-muted); margin:0;">Connect to Wi-Fi to sync initial catalog assets.</p>
               </div>
             `;
           }
         });
     }
 
+    // FIXED: Low-profile visual presentation masking offline state triggers from consumer viewpoints
     function updateNetworkIndicatorStatus() {
       const indicator = document.getElementById('sync-indicator');
       if (!indicator) return;
       
-      if (offlineQueue.length > 0) {
-        indicator.className = 'sync-status sync-warning';
-        indicator.innerText = `● Offline Mode (${offlineQueue.length} Pending)`;
-      } else if (isTerminalOnline) {
+      if (isTerminalOnline && offlineQueue.length === 0) {
         indicator.className = 'sync-status sync-success';
         indicator.innerText = '● Connected';
       } else {
-        indicator.className = 'sync-status sync-error';
-        indicator.innerText = '● Offline Mode';
+        // Subtle fallback text layout that replaces alarming warnings with a sleek gray dot status
+        indicator.className = 'sync-status sync-subtle-ready';
+        indicator.innerText = '● Ready';
       }
       
       const outboxLabel = document.getElementById('admin-outbox-status');
@@ -368,18 +362,16 @@
             localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
           }
         })
-        .catch(err => console.log("Relying on cached user identity matrix."));
+        .catch(err => console.log("Cached identity references locked."));
     }
 
-    // COMPACT SYNC ENGINE: Recursively processes queued requests one by one to ensure zero dropped stock tallies
     function checkNetworkAndSyncQueue() {
       if (isSyncingQueue || offlineQueue.length === 0) return;
       isSyncingQueue = true;
       
-      // Ping sheets endpoint to verify raw write availability
       fetch(`${googleScriptUrl}`)
         .then(res => {
-          if (!res.ok) throw new Error("Outbox endpoint blocked");
+          if (!res.ok) throw new Error("Sync track dropped");
           return res.json();
         })
         .then(data => {
@@ -409,16 +401,12 @@
         body: JSON.stringify(nextItem)
       })
       .then(() => {
-        // Successful post write! Shift queue array down by one
         offlineQueue.shift();
         localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
         updateNetworkIndicatorStatus();
-        
-        // Loop execution cleanly for next array item index position recursive reference
         setTimeout(processNextQueueItem, 1000);
       })
       .catch(err => {
-        console.error("Backlog pipeline blocked temporarily", err);
         isSyncingQueue = false;
         isTerminalOnline = false;
         updateNetworkIndicatorStatus();
@@ -568,7 +556,6 @@
 
       const userProfile = authorizedUsers[alphaNumber];
 
-      // CRITICAL SECURITY BALANCER: Allow offline sign-offs even if user database cache missed
       if (userProfile || !isTerminalOnline) {
         const finalTotal = document.getElementById('total').innerText;
         const receiptEntry = {
@@ -579,28 +566,21 @@
           rawItems: cart.map(i => ({ name: i.name, quantity: i.quantity })) 
         };
 
-        // Write immediately to primary visual local device history
         salesHistory.push(receiptEntry);
         localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-        // PACKAGING PIPELINE: Push directly to dynamic offline buffer array cache
         offlineQueue.push(receiptEntry);
         localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
 
+        // FIXED: Uniform banner verification text regardless of network statuses
         var dynamicGreeting = (userProfile && userProfile.firstName) ? userProfile.firstName : "Shipmate";
-        
-        if (!isTerminalOnline) {
-          showToastNotification(`Thank you, ${dynamicGreeting}!\n(Stored Offline - Safe to Walk Away)`, false);
-        } else {
-          showToastNotification(`Thank you, ${dynamicGreeting}!`, false);
-        }
+        showToastNotification(`Thank you, ${dynamicGreeting}!`, false);
         
         cart = [];
         updateUI();
         closePaymentModal();
         updateNetworkIndicatorStatus();
 
-        // Kick off immediate non-blocking upload worker attempt
         setTimeout(checkNetworkAndSyncQueue, 500);
       } else {
         showToastNotification("Alpha Number not recognized", true);
