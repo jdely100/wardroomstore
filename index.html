@@ -152,9 +152,10 @@
     </div>
     <div class="admin-content">
       <div class="admin-column">
-        <h3>Cloud Inventory Link Active</h3>
-        <p style="color:#86868b; line-height: 1.5;">Your item pricing configurations are actively controlled via Google Sheets. Update the <strong>Inventory</strong> sheet tab directly.</p>
-        <button class="btn-modal btn-submit" style="width:100%; background: var(--primary);" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
+        <h3>Cloud Connections Link Active</h3>
+        <p style="color:#86868b; line-height: 1.5; margin-bottom: 15px;">Your item pricing and user access databases are driven via your Google Sheet.</p>
+        <button class="btn-modal btn-submit" style="width:100%; background: var(--primary); margin-bottom: 10px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
+        <button class="btn-modal btn-submit" style="width:100%; background: #5856d6;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
         <h3 style="margin-top:30px;">Active Storefront Directory</h3>
         <div id="admin-inventory-list"></div>
       </div>
@@ -174,12 +175,17 @@
     let products = []; 
     let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
+    
+    // NEW: Local array to hold cached authorized users list
+    let authorizedUsers = []; 
 
     function initApp() {
       fetchCloudInventory();
+      downloadAuthorizedUsers(); // Pre-cache authorized database on launch
       updateUI();
     }
 
+    // 1. Fetch products from Sheet
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
       const catalogEl = document.getElementById('catalog');
@@ -230,6 +236,26 @@
           
           cart = [];
           updateUI();
+        });
+    }
+
+    // 2. NEW: Pre-download and cache authorized user database in iPad memory
+    function downloadAuthorizedUsers() {
+      // Query the Google Apps Script checkAlpha parameter with an empty string
+      // This falls through to doGet logic returning the authorization state, but we've configured
+      // the apps script GET checks to return authorization queries. To pull the WHOLE list, 
+      // we pass "checkAlpha=DOWNLOAD_MASTER_CACHE"
+      fetch(`${googleScriptUrl}?checkAlpha=DOWNLOAD_MASTER_CACHE`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && Array.isArray(data.masterList)) {
+            authorizedUsers = data.masterList;
+            console.log("Cached Authorized Users:", authorizedUsers);
+            showToastNotification("Authorized users sync complete!", false);
+          }
+        })
+        .catch(err => {
+          console.error("Error downloading user database cache", err);
         });
     }
 
@@ -323,56 +349,44 @@
       }, 3000);
     }
 
+    // UPDATED: Completely instant validation routine
     function submitPayment() {
-      const alphaNumber = document.getElementById('alpha-field').value.trim();
+      const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
       if (!alphaNumber) return alert('Please input an ID using the keypad.');
 
-      const submitBtn = document.getElementById('confirm-pay-btn');
-      submitBtn.disabled = true;
-      submitBtn.innerText = "Verifying...";
+      // INSTANT LOCAL MEMORY CHECK (Bypasses slow API fetch wait!)
+      const isAuthorized = authorizedUsers.indexOf(alphaNumber) !== -1;
 
-      // STRICT FRONT-END CHECK: Querying via standard GET request architecture
-      fetch(`${googleScriptUrl}?checkAlpha=${alphaNumber}`)
-        .then(response => response.json())
-        .then(res => {
-          if (res && res.authorized === true) {
-            // MATCH FOUND! Execute checkout payload sequences
-            const finalTotal = document.getElementById('total').innerText;
-            const receiptEntry = {
-              timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
-              userAlpha: alphaNumber,
-              summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
-              grandTotal: finalTotal
-            };
+      if (isAuthorized) {
+        const finalTotal = document.getElementById('total').innerText;
+        const receiptEntry = {
+          timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
+          userAlpha: alphaNumber,
+          summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
+          grandTotal: finalTotal
+        };
 
-            salesHistory.push(receiptEntry);
-            localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
+        // Save locally to display list
+        salesHistory.push(receiptEntry);
+        localStorage.setItem('kiosk_history', JSON.stringify(salesHistory));
 
-            fetch(googleScriptUrl, {
-              method: 'POST',
-              mode: 'no-cors',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(receiptEntry)
-            });
-
-            showToastNotification(`Order Confirmed for ID: ${alphaNumber}`, false);
-            cart = [];
-            updateUI();
-            closePaymentModal();
-          } else {
-            // FAILURE: No match in Database tab. Abort everything and prompt user
-            showToastNotification("Declined: User ID not authorized", true);
-            document.getElementById('alpha-field').value = ''; // Clear pad input
-          }
-        })
-        .catch(err => {
-          console.error("Authorization sync issue", err);
-          showToastNotification("Network error checking ID status", true);
-        })
-        .finally(() => {
-          submitBtn.disabled = false;
-          submitBtn.innerText = "Confirm Order";
+        // Append to "Transaction History" asynchronously in background
+        fetch(googleScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(receiptEntry)
         });
+
+        showToastNotification(`Order Confirmed for ID: ${alphaNumber}`, false);
+        cart = [];
+        updateUI();
+        closePaymentModal();
+      } else {
+        // Validation fails instantly!
+        showToastNotification("Declined: User ID not authorized", true);
+        document.getElementById('alpha-field').value = ''; 
+      }
     }
 
     // BACK END ADMINISTRATIVE CONTROLS
