@@ -12,6 +12,7 @@
       --bg: #f5f5f7;
       --text: #1d1d1f;
       --overlay: rgba(0, 0, 0, 0.4);
+      --danger: #ff3b30;
     }
     
     body {
@@ -23,9 +24,23 @@
       display: flex;
       height: 100vh;
       overflow: hidden;
+      position: relative;
     }
 
-    /* Split Screen Layout for iPad */
+    /* Secret Admin Trigger */
+    .admin-trigger {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    /* Main Checkout Split Screen */
     .catalog-side {
       flex: 1.5;
       padding: 24px;
@@ -43,7 +58,6 @@
 
     h2 { margin-top: 0; font-weight: 600; }
 
-    /* Product Grid Styling */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -57,11 +71,6 @@
       text-align: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       cursor: pointer;
-      transition: transform 0.1s ease;
-    }
-
-    .product-card:active {
-      transform: scale(0.95);
     }
 
     .product-price {
@@ -70,7 +79,6 @@
       margin-top: 8px;
     }
 
-    /* Receipt List Styling */
     .receipt-items {
       flex: 1;
       overflow-y: auto;
@@ -119,95 +127,71 @@
       margin-top: 16px;
     }
 
-    /* iOS-Style Modal Popup Styling */
+    /* Modals & Fullscreens Panels */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0; width: 100vw; height: 100vh;
       background-color: var(--overlay);
-      display: none; /* Hidden by default */
-      align-items: center;
-      justify-content: center;
+      display: none;
+      align-items: center; justify-content: center;
       z-index: 999;
     }
 
     .modal-box {
-      background: white;
-      width: 90%;
-      max-width: 420px;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-      text-align: center;
-      box-sizing: border-box;
-    }
-
-    .modal-box h3 {
-      margin-top: 0;
-      font-size: 22px;
-      color: var(--text);
-    }
-
-    .modal-box p {
-      color: #86868b;
-      font-size: 14px;
-      margin-bottom: 20px;
+      background: white; width: 90%; max-width: 420px; padding: 30px; border-radius: 20px; text-align: center;
     }
 
     .alpha-input {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      border: 1px solid #d2d2d7;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      text-align: center;
-      text-transform: uppercase; /* iPad keyboard input looks standardized */
-      box-sizing: border-box;
+      width: 100%; padding: 14px; font-size: 18px; border: 1px solid #d2d2d7; border-radius: 10px; margin-bottom: 20px; text-align: center; box-sizing: border-box;
     }
 
-    .alpha-input:focus {
-      outline: none;
-      border-color: var(--primary);
+    .modal-actions { display: flex; gap: 12px; }
+    .btn-modal { flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; }
+    .btn-cancel { background: #e5e5ea; color: var(--text); }
+    .btn-submit { background: var(--primary); color: white; }
+
+    /* Admin Full Screen Panel View */
+    .admin-panel {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #f5f5f7;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 12px;
+    .admin-header {
+      background: white; padding: 20px; border-bottom: 1px solid #d2d2d7; display: flex; justify-content: space-between; align-items: center;
     }
 
-    .btn-modal {
-      flex: 1;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
+    .admin-content {
+      flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 20px;
     }
 
-    .btn-cancel {
-      background: #e5e5ea;
-      color: var(--text);
+    .admin-column {
+      flex: 1; background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     }
 
-    .btn-submit {
-      background: var(--primary);
-      color: white;
+    .inventory-form input {
+      width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box;
+    }
+
+    .log-item {
+      padding: 12px; border-bottom: 1px solid #e5e5ea; font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Left Side: Product Catalog Matrix -->
+  <!-- Hidden Trigger: Hidden small square button in the bottom left corner -->
+  <button class="admin-trigger" onclick="promptAdminPassword()"></button>
+
+  <!-- Front End Kiosk View -->
   <div class="catalog-side">
     <h2>Tap items to scan</h2>
     <div class="grid" id="catalog"></div>
   </div>
 
-  <!-- Right Side: Live Cart Summary -->
   <div class="receipt-side">
     <div style="padding: 24px 24px 0 24px;"><h2>Current Order</h2></div>
     <div class="receipt-items" id="cart-list">
@@ -222,7 +206,7 @@
     </div>
   </div>
 
-  <!-- Alpha Tracking Modal Popup -->
+  <!-- Alpha Tracking Modal -->
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
       <h3>Track Transaction</h3>
@@ -235,32 +219,70 @@
     </div>
   </div>
 
+  <!-- BACK END ADMINISTRATIVE INTERFACE -->
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-header">
+      <h2>Manager Back End System</h2>
+      <button class="btn-modal btn-cancel" style="max-width: 120px;" onclick="closeAdmin()">Exit System</button>
+    </div>
+    <div class="admin-content">
+      
+      <!-- Left Column: Inventory Management -->
+      <div class="admin-column">
+        <h3>Add New Product</h3>
+        <div class="inventory-form">
+          <input type="text" id="inv-name" placeholder="Product Name (e.g., Chips)">
+          <input type="number" step="0.01" id="inv-price" placeholder="Price (e.g., 2.99)">
+          <button class="btn-modal btn-submit" style="width:100%" onclick="addNewProduct()">Add Item to Register</button>
+        </div>
+        <h3 style="margin-top:30px;">Current Inventory Items</h3>
+        <div id="admin-inventory-list"></div>
+      </div>
+
+      <!-- Right Column: Transaction Logs -->
+      <div class="admin-column">
+        <h3>Historic Audit Logs</h3>
+        <div id="admin-logs-list" style="flex:1;">
+          <p style="color:#86868b">No transactions recorded yet.</p>
+        </div>
+        <button class="btn-modal btn-cancel" style="background: var(--danger); color: white; margin-top: 12px;" onclick="clearLogs()">Wipe All History</button>
+      </div>
+
+    </div>
+  </div>
+
   <script>
-    // 1. Mock Catalog Data
-    const products = [
+    // Default fallback inventory if database storage is empty
+    const defaultProducts = [
       { id: 1, name: 'Apple', price: 0.99 },
       { id: 2, name: 'Banana', price: 0.59 },
-      { id: 3, name: 'Coffee Bean Bag', price: 12.49 },
-      { id: 4, name: 'Whole Milk', price: 3.49 },
-      { id: 5, name: 'Sourdough Bread', price: 4.99 },
-      { id: 6, name: 'Avocado', price: 1.99 }
+      { id: 3, name: 'Coffee Bag', price: 12.49 }
     ];
 
-    // 2. Active Application States
+    // Load states from LocalStorage or fall back to defaults
+    let products = JSON.parse(localStorage.getItem('kiosk_inventory')) || defaultProducts;
+    let salesHistory = JSON.parse(localStorage.getItem('kiosk_history')) || [];
     let cart = [];
-    let salesHistory = []; // Local record tracking past completed checkouts
 
-    // 3. Render Catalog
-    const catalogEl = document.getElementById('catalog');
-    products.forEach(product => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `<div>${product.name}</div><div class="product-price">$${product.price.toFixed(2)}</div>`;
-      card.onclick = () => addToCart(product);
-      catalogEl.appendChild(card);
-    });
+    // Master App Initialize
+    function initApp() {
+      renderCatalog();
+      updateUI();
+    }
 
-    // 4. Cart State Mutation
+    // Render client catalog grid
+    function renderCatalog() {
+      const catalogEl = document.getElementById('catalog');
+      catalogEl.innerHTML = '';
+      products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `<div>${product.name}</div><div class="product-price">$${product.price.toFixed(2)}</div>`;
+        card.onclick = () => addToCart(product);
+        catalogEl.appendChild(card);
+      });
+    }
+
     function addToCart(product) {
       const existingItem = cart.find(item => item.id === product.id);
       if (existingItem) {
@@ -271,7 +293,6 @@
       updateUI();
     }
 
-    // 5. Redraw Receipt State
     function updateUI() {
       const cartListEl = document.getElementById('cart-list');
       if (cart.length === 0) {
@@ -288,78 +309,130 @@
       cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         subtotal += itemTotal;
-
         const row = document.createElement('div');
         row.className = 'cart-item';
-        row.innerHTML = `
-          <div>
-            <strong>${item.name}</strong><br>
-            <small style="color:#86868b">$${item.price.toFixed(2)} x ${item.quantity}</small>
-          </div>
-          <strong>$${itemTotal.toFixed(2)}</strong>
-        `;
+        row.innerHTML = `<div><strong>${item.name}</strong><br><small style="color:#86868b">$${item.price.toFixed(2)} x ${item.quantity}</small></div><strong>$${itemTotal.toFixed(2)}</strong>`;
         cartListEl.appendChild(row);
       });
 
       const tax = subtotal * 0.08;
       const total = subtotal + tax;
-
       document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
       document.getElementById('tax').innerText = `$${tax.toFixed(2)}`;
       document.getElementById('total').innerText = `$${total.toFixed(2)}`;
     }
 
-    // 6. Modal Interactions & Validation Architecture
-    const modalEl = document.getElementById('payment-modal');
-    const alphaField = document.getElementById('alpha-field');
-
-    function openPaymentModal() {
-      if (cart.length === 0) {
-        alert('Your cart is empty!');
-        return;
-      }
-      modalEl.style.display = 'flex';
-      alphaField.focus(); // Pulls up iPad on-screen keyboard
-    }
-
-    function closePaymentModal() {
-      modalEl.style.display = 'none';
-      alphaField.value = '';
-    }
+    // Checkout functions
+    function openPaymentModal() { if (cart.length === 0) return alert('Your cart is empty!'); document.getElementById('payment-modal').style.display = 'flex'; document.getElementById('alpha-field').focus(); }
+    function closePaymentModal() { document.getElementById('payment-modal').style.display = 'none'; document.getElementById('alpha-field').value = ''; }
 
     function submitPayment() {
-      const alphaNumber = alphaField.value.trim().toUpperCase();
-      
-      if (!alphaNumber) {
-        alert('Please provide a valid Alpha Number to continue.');
-        return;
-      }
+      const alphaNumber = document.getElementById('alpha-field').value.trim().toUpperCase();
+      if (!alphaNumber) return alert('Please provide a valid Alpha Number.');
 
-      // Build out the final immutable transaction entry
       const finalTotal = document.getElementById('total').innerText;
       const receiptEntry = {
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
         userAlpha: alphaNumber,
-        purchasedItems: [...cart],
+        summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
         grandTotal: finalTotal
       };
 
-      // Push execution payload to memory bank array
       salesHistory.push(receiptEntry);
-      console.log('Transaction logged successfully:', receiptEntry);
+      localStorage.setItem('kiosk_history', JSON.stringify(salesHistory)); // Save to backend simulator
 
-      alert(`Transaction Complete!\nLogged to Alpha: ${alphaNumber}\nTotal: ${finalTotal}`);
-      
-      // Reset layout environment for the next customer
+      alert(`Transaction logged to Alpha: ${alphaNumber}`);
       cart = [];
       updateUI();
       closePaymentModal();
     }
 
-    // Register PWA Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+    // BACK END SYSTEM ENGINE LOGIC
+    const ADMIN_PASSWORD = "1234"; // Adjust this to whatever code you want
+
+    function promptAdminPassword() {
+      const entry = prompt("Enter administrative system security code:");
+      if (entry === ADMIN_PASSWORD) {
+        openAdminPanel();
+      } else if (entry !== null) {
+        alert("Access denied. Invalid credentials.");
+      }
     }
+
+    function openAdminPanel() {
+      document.getElementById('admin-panel').style.display = 'flex';
+      renderAdminInventory();
+      renderAdminLogs();
+    }
+
+    function closeAdmin() {
+      document.getElementById('admin-panel').style.display = 'none';
+      initApp(); // Refresh storefront catalog
+    }
+
+    function renderAdminInventory() {
+      const listEl = document.getElementById('admin-inventory-list');
+      listEl.innerHTML = '';
+      products.forEach((prod, index) => {
+        const row = document.createElement('div');
+        row.className = 'log-item';
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.innerHTML = `<span><strong>${prod.name}</strong> - $${prod.price.toFixed(2)}</span>
+                        <span style="color:var(--danger); cursor:pointer;" onclick="deleteProduct(${index})">Remove</span>`;
+        listEl.appendChild(row);
+      });
+    }
+
+    function renderAdminLogs() {
+      const logsEl = document.getElementById('admin-logs-list');
+      if (salesHistory.length === 0) {
+        logsEl.innerHTML = '<p style="color:#86868b">No transactions recorded yet.</p>';
+        return;
+      }
+      logsEl.innerHTML = '';
+      // Show newest transactions first
+      [...salesHistory].reverse().forEach(log => {
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.innerHTML = `<strong>[${log.timestamp}]</strong> - ID: <u>${log.userAlpha}</u><br>
+                          <small style="color:#86868b">${log.summary}</small><br>
+                          <strong>Total Charged: ${log.grandTotal}</strong>`;
+        logsEl.appendChild(item);
+      });
+    }
+
+    function addNewProduct() {
+      const name = document.getElementById('inv-name').value.trim();
+      const price = parseFloat(document.getElementById('inv-price').value);
+
+      if (!name || isNaN(price)) return alert('Please enter a valid product name and retail price.');
+
+      const newProd = { id: Date.now(), name: name, price: price };
+      products.push(newProd);
+      localStorage.setItem('kiosk_inventory', JSON.stringify(products)); // Commit inventory change
+      
+      document.getElementById('inv-name').value = '';
+      document.getElementById('inv-price').value = '';
+      renderAdminInventory();
+    }
+
+    function deleteProduct(index) {
+      products.splice(index, 1);
+      localStorage.setItem('kiosk_inventory', JSON.stringify(products));
+      renderAdminInventory();
+    }
+
+    function clearLogs() {
+      if (confirm("Are you sure you want to permanently clear all transaction logs?")) {
+        salesHistory = [];
+        localStorage.removeItem('kiosk_history');
+        renderAdminLogs();
+      }
+    }
+
+    // Launch
+    initApp();
   </script>
 </body>
 </html>
