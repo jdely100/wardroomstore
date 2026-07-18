@@ -159,7 +159,6 @@
     .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
     .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
-    /* FIXED: Clean layout metrics ledger grid for balance query views */
     .balance-ledger-grid {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; text-align: center;
     }
@@ -510,20 +509,26 @@
       }
     }
 
-    function downloadAuthorizedUsers() {
+    function downloadAuthorizedUsers(callback) {
       fetch(`${googleScriptUrl}?checkAlpha=DOWNLOAD_MASTER_CACHE`)
         .then(response => response.json())
         .then(data => {
           if (data && data.masterList) {
             authorizedUsers = data.masterList;
             localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
+            if (callback) callback();
           }
         })
-        .catch(err => console.log("User mapping locked."));
+        .catch(err => {
+          console.log("User mapping locked.");
+          if (callback) callback();
+        });
     }
 
     function openHubModal() {
       triggerHapticPulse(15);
+      // FIXED: Forces a fresh background spreadsheet download sequence every time the hub opens to clear sheet value desyncs
+      downloadAuthorizedUsers();
       document.body.classList.add('modal-open');
       document.getElementById('hub-modal').style.display = 'flex';
     }
@@ -583,38 +588,49 @@
       document.getElementById('hub-modal').style.display = 'flex';
     }
     
-    // FIXED: Formatted lookup display to output all 3 column parameters (Spent, Paid, Outstanding)
+    // FIXED: Embedded conditional color status formatting engines directly into query loops
     function evaluateLiveBalanceQuery(currentValue) {
       const alpha = currentValue.trim().toUpperCase();
       const label = document.getElementById('balance-query-feedback');
       
       if (alpha.length === 6) { 
-        const profile = authorizedUsers[alpha];
-        if (profile) {
-          const spent = parseFloat(profile.totalSpent) || 0;
-          const paid = parseFloat(profile.amountPaid) || 0;
-          const outstanding = parseFloat(profile.amountOutstanding) || 0;
-          
-          label.innerHTML = `
-            <span style="color:var(--success); font-weight:700; font-size:18px;">Welcome, ${profile.firstName}!</span>
-            <div class="balance-ledger-grid">
-              <div class="ledger-block">
-                <div class="ledger-label">Total Spent</div>
-                <div class="ledger-val">$${spent.toFixed(2)}</div>
+        // Force a priority background download refresh target block to capture changes instantly
+        downloadAuthorizedUsers(() => {
+          const profile = authorizedUsers[alpha];
+          if (profile) {
+            const spent = parseFloat(profile.totalSpent) || 0;
+            const paid = parseFloat(profile.amountPaid) || 0;
+            const outstanding = parseFloat(profile.amountOutstanding) || 0;
+            
+            // Evaluates conditional parameters to toggle color indicators based on full bills paid
+            const isBillPaidInFull = (outstanding <= 0 && spent > 0);
+            const paidColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--text)';
+            const outstandingBgStyle = isBillPaidInFull ? '#f0fdf4' : '#fef2f2';
+            const outstandingBorderStyle = isBillPaidInFull ? '#bbf7d0' : '#fca5a5';
+            const outstandingColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--danger)';
+            const outstandingLabelColor = isBillPaidInFull ? '#166534' : '#b91c1c';
+            
+            label.innerHTML = `
+              <span style="color:var(--accent); font-weight:700; font-size:18px;">Welcome back, ${profile.firstName}!</span>
+              <div class="balance-ledger-grid">
+                <div class="ledger-block">
+                  <div class="ledger-label">Total Spent</div>
+                  <div class="ledger-val">$${spent.toFixed(2)}</div>
+                </div>
+                <div class="ledger-block">
+                  <div class="ledger-label">Amount Paid</div>
+                  <div class="ledger-val" style="color:${paidColorStyle}">$${paid.toFixed(2)}</div>
+                </div>
+                <div class="ledger-block" style="background:${outstandingBgStyle}; border-color:${outstandingBorderStyle};">
+                  <div class="ledger-label" style="color:${outstandingLabelColor}">Outstanding</div>
+                  <div class="ledger-val" style="color:${outstandingColorStyle}">$${outstanding.toFixed(2)}</div>
+                </div>
               </div>
-              <div class="ledger-block">
-                <div class="ledger-label">Amount Paid</div>
-                <div class="ledger-val" style="color:var(--success)">$${paid.toFixed(2)}</div>
-              </div>
-              <div class="ledger-block" style="background:#fef2f2; border-color:#fca5a5;">
-                <div class="ledger-label" style="color:#b91c1c">Outstanding</div>
-                <div class="ledger-val" style="color:var(--danger)">$${outstanding.toFixed(2)}</div>
-              </div>
-            </div>
-          `;
-        } else {
-          label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
-        }
+            `;
+          } else {
+            label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
+          }
+        });
       } else {
         label.innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
       }
