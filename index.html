@@ -199,6 +199,18 @@
     .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
     .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
 
+    /* FIXED: Ensured fixed coordinates keep overlay banners layout-isolated from blocking grid fields */
+    .toast-notification {
+      position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+      background: var(--primary); color: white; padding: 22px 44px; border-radius: 40px;
+      font-size: 22px; font-weight: 800; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+      z-index: 20000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .toast-notification.show { top: 40px; }
+    .toast-danger { background: var(--danger); font-size: 16px; font-weight: 700; padding: 16px 32px; }
+    .toast-warning { background: var(--warning); font-size: 18px; font-weight: 700; padding: 18px 36px; box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3); }
+
     .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
     .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .admin-content { flex: 1; display: flex; overflow: hidden; padding: 32px; gap: 32px; box-sizing: border-box; }
@@ -483,6 +495,7 @@
       }
     }
 
+    // FIXED: Corrected named pointer mappings to initialize keypad handlers cleanly
     function initApp() {
       compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field', '');
       compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
@@ -538,10 +551,6 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      initApp();
-    });
-
     function updateNetworkIndicatorStatus() {
       const indicator = document.getElementById('sync-indicator');
       if (!indicator) return;
@@ -595,7 +604,6 @@
     function submitStoreSuggestion() {
       const alpha = document.getElementById('suggest-alpha').value.trim().toUpperCase();
       const text = document.getElementById('suggest-text').value.trim();
-      
       if (!alpha || !text) return alert("Please fill out all request parameters.");
       
       const suggestionEntry = {
@@ -607,7 +615,6 @@
 
       offlineQueue.push(suggestionEntry);
       localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
-      
       showToastNotification("Idea shared! Thank you for your feedback.", false);
       
       document.getElementById('suggest-alpha').value = '';
@@ -909,10 +916,6 @@
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
     }
-
-    style = document.createElement('style');
-    style.innerHTML = '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }';
-    document.head.appendChild(style);
 
     function showToastNotification(message, isError = false, isWarning = false) {
       const toast = document.getElementById('toast-banner');
