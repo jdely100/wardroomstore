@@ -30,14 +30,12 @@
 
     body.modal-open .catalog-side { overflow: hidden !important; }
 
-    /* FIXED: Admin panel activation button relocated securely to the top-left boundary */
     .admin-trigger {
       position: absolute; top: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10001;
     }
 
     .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; height: 100vh; }
     
-    /* FIXED: Aligned section header title parameters with the connection flag */
     .section-header { 
       position: sticky; top: -32px; background-color: var(--bg); z-index: 21;
       padding-top: 32px; padding-bottom: 8px; margin-bottom: 0;
@@ -104,7 +102,7 @@
     
     .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     
-    /* NEW: Sleek sub-action Clear Cart trigger profile */
+    /* MODIFIED: Cleared emoji profile properties */
     .clear-cart-trigger-btn {
       background: transparent; border: 1px solid #fca5a5; color: var(--danger); padding: 6px 12px;
       font-size: 12px; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.1s ease;
@@ -178,7 +176,6 @@
       box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); animation: pulseGlowSwell 2s infinite;
     }
 
-    /* Admin Feature Toggle Elements */
     .toggle-row-setting {
       display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: #f8fafc; border-radius: 12px;
     }
@@ -259,36 +256,12 @@
     .btn-modal { flex: 1; padding: 18px; font-size: 16px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
     .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
     .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
-
-    .sync-status { 
-      font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px;
-      display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
-    }
-    .sync-success { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
-    .sync-loading { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-    .sync-subtle-ready { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
-
-    .toast-notification {
-      position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
-      background: var(--primary); color: white; padding: 22px 44px; border-radius: 40px;
-      font-size: 22px; font-weight: 800; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-      z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .toast-notification.show { top: 40px; }
-    .toast-danger { background: var(--danger); font-size: 16px; font-weight: 700; padding: 16px 32px; }
-    .toast-warning { background: var(--warning); font-size: 18px; font-weight: 700; padding: 18px 36px; box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3); }
-
-    .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
-    .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .admin-content { flex: 1; display: flex; overflow: hidden; padding: 32px; gap: 32px; box-sizing: border-box; }
-    .admin-column { flex: 1; background: white; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--border); }
-    .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
   </style>
 </head>
 <body onclick="resetIdleTimeout()" ontouchstart="resetIdleTimeout()">
 
-  <div class="screensaver-splash-view" id="screensaver-splash" onclick="dismissScreensaverSplash()">
+  <!-- MODIFIED: The Welcome Stage visibility matches initial preference states -->
+  <div class="screensaver-splash-view" id="screensaver-splash" onclick="dismissScreensaverSplash()" style="display:none;">
     <div class="screensaver-canvas-container" id="screensaver-nodes-canvas"></div>
     <div class="splash-hero-dialog-card">
       <h1>Welcome to the<br>30th Company Wardroom Store</h1>
@@ -299,12 +272,10 @@
 
   <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
-  <!-- FIXED: Invisible manager panel sensor patch reassigned to the top left frame boundaries -->
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
   <div class="catalog-side">
     <div class="section-header">
-      <!-- FIXED: Connected network flag relocated cleanly next to your main Title text -->
       <div class="title-area">
         <h2>30th Company Wardroom Store</h2>
         <div id="sync-indicator" class="sync-status sync-loading">Connecting...</div>
@@ -319,10 +290,10 @@
   </div>
 
   <div class="receipt-side">
-    <!-- FIXED: Introduced clear cart utility block into right sidebar panel header area -->
     <div class="cart-header">
       <h2>Your Cart</h2>
-      <button class="clear-cart-trigger-btn" onclick="promptClearCartConfirmationDialog()">🗑️ Clear Cart</button>
+      <!-- MODIFIED: Stripped out layout emoji characters -->
+      <button class="clear-cart-trigger-btn" onclick="openClearCartConfirmationModal()">Clear Cart</button>
     </div>
     <div class="receipt-items" id="cart-list">
       <p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>
@@ -330,6 +301,18 @@
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e2e8f0; color:var(--text-muted); cursor:not-allowed; box-shadow:none;">Initializing...</button>
+    </div>
+  </div>
+
+  <!-- NEW MODAL COMPONENT: Custom Customer Confirmation Overlay Layout -->
+  <div class="modal-overlay" id="clear-cart-modal">
+    <div class="modal-box">
+      <h3>Clear entire cart?</h3>
+      <p>This will remove all items currently in your checkout tray.</p>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button class="btn-modal btn-cancel" onclick="closeClearCartConfirmationModal()">No</button>
+        <button class="btn-modal btn-submit" style="background: var(--danger); box-shadow: 0 4px 12px rgba(239,68,68,0.2);" onclick="executeConfirmedCartPurge()">Yes</button>
+      </div>
     </div>
   </div>
 
@@ -360,7 +343,7 @@
     <div class="modal-box">
       <h3>Wardroom Suggestion Box</h3>
       <p>Have an item request or idea? Let us know below!</p>
-      <input type="text" class="alpha-input" id="suggest-alpha" placeholder="6-Digit Alpha" maxlength="6" style="font-size:20px; padding:14px; margin-bottom:12px; letter-spacing: 1px;">
+      <input type="text" class="alpha-input" id="suggest-alpha" placeholder="Alpha" maxlength="6" style="font-size:20px; padding:14px; margin-bottom:12px; letter-spacing: 1px;">
       <textarea class="suggestion-textarea" id="suggest-text" placeholder="Type what you want to see added to the store..."></textarea>
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closeSuggestionModal()">Back</button>
@@ -372,7 +355,8 @@
   <div class="modal-overlay" id="balance-modal">
     <div class="modal-box">
       <h3>Balance Lookup</h3>
-      <p id="balance-query-feedback">Enter your 6-digit Alpha Number to view your active account balance.</p>
+      <!-- MODIFIED: Removed '6-digit' text labels -->
+      <p id="balance-query-feedback">Enter your Alpha Number to view your active account balance.</p>
       <input type="text" class="alpha-input" id="lookup-alpha" placeholder="------" readonly>
       <div class="keypad-grid" id="lookup-keypad"></div>
       <div class="modal-actions">
@@ -392,8 +376,10 @@
 
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
-      <h3>Store Authorization</h3>
-      <p>Enter your 6-digit Alpha Number below to authorize checkout.</p>
+      <!-- MODIFIED: Header text map update -->
+      <h3>Enter Alpha</h3>
+      <!-- MODIFIED: Removed '6-digit' descriptors -->
+      <p>Enter your Alpha Number below to authorize checkout.</p>
       <input type="text" class="alpha-input" id="alpha-field" placeholder="------" readonly>
       <div class="keypad-grid" id="checkout-keypad"></div>
       <div class="modal-actions">
@@ -412,13 +398,12 @@
       <div class="admin-column">
         <h3 style="margin:0 0 16px 0; font-size:18px;">Kiosk Storefront Preferences</h3>
         
-        <!-- FIXED: Implemented Welcome Screen Activation Preference Toggle Switch Control Node -->
         <div class="toggle-row-setting">
           <div>
             <strong style="font-size:15px; color:var(--primary);">Enable Welcome Screen</strong><br>
             <small style="color:var(--text-muted);">Launch floating attraction screensaver during periods of store inactivity.</small>
           </div>
-          <input type="checkbox" id="welcome-screen-toggle-setting" class="toggle-switch-input" checked onchange="handleWelcomeScreenPreferenceToggle(this)">
+          <input type="checkbox" id="welcome-screen-toggle-setting" class="toggle-switch-input" onchange="handleWelcomeScreenPreferenceToggle(this)">
         </div>
 
         <h3 style="margin:24px 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
@@ -457,8 +442,8 @@
     let screensaverAnimationId = null;
     let screensaverNodesArray = [];
     
-    // NEW: Persistent tracking hook for screensaver runtime execution properties
-    let isWelcomeScreenEnabledSetting = JSON.parse(localStorage.getItem('kiosk_setting_welcome_enabled')) !== false;
+    // FIXED: Changed default value assignment rule parameters to lock welcome screen off initially
+    let isWelcomeScreenEnabledSetting = JSON.parse(localStorage.getItem('kiosk_setting_welcome_enabled')) === true;
 
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
@@ -525,24 +510,32 @@
       closeSuggestionModal();
       closeLeaderboardModal();
       closeHubModal();
+      closeClearCartConfirmationModal();
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
       activateScreensaverSplashMode();
     }
 
-    // NEW: Interactive clear cart verification step mapping routines
-    function promptClearCartConfirmationDialog() {
+    // FIXED: Non-blocking embedded custom element layout handles for clear cart confirmation events
+    function openClearCartConfirmationModal() {
       if (cart.length === 0) return;
       triggerHapticPulse(15);
-      if (confirm("Are you sure you want to empty your current cart layout completely?")) {
-        cart = [];
-        updateUI();
-        showToastNotification("Shopping cart emptied successfully.", false);
-        resetIdleTimeout();
-      }
+      document.body.classList.add('modal-open');
+      document.getElementById('clear-cart-modal').style.display = 'flex';
+    }
+    function closeClearCartConfirmationModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('clear-cart-modal').style.display = 'none';
+      resetIdleTimeout();
+    }
+    function executeConfirmedCartPurge() {
+      cart = [];
+      updateUI();
+      // MODIFIED: Changed alert notification string hook matches to 'Cart Clear'
+      showToastNotification("Cart Clear", false);
+      closeClearCartConfirmationModal();
     }
 
-    // NEW: Settings control handle framework updates
     function handleWelcomeScreenPreferenceToggle(checkboxElement) {
       isWelcomeScreenEnabledSetting = checkboxElement.checked;
       localStorage.setItem('kiosk_setting_welcome_enabled', JSON.stringify(isWelcomeScreenEnabledSetting));
@@ -553,7 +546,6 @@
     }
 
     function activateScreensaverSplashMode() {
-      // Safety skip execution if preference maps declare welcome stages turned off
       if (!isWelcomeScreenEnabledSetting) return;
 
       cart = [];
@@ -563,6 +555,7 @@
       closeSuggestionModal();
       closeLeaderboardModal();
       closeHubModal();
+      closeClearCartConfirmationModal();
       
       const splashOverlay = document.getElementById('screensaver-splash');
       const canvas = document.getElementById('screensaver-nodes-canvas');
@@ -660,19 +653,23 @@
     }
 
     function initApp() {
-      // Sync internal layout checkboxes to local storage toggle settings properties
       document.getElementById('welcome-screen-toggle-setting').checked = isWelcomeScreenEnabledSetting;
 
       compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field', '');
-      compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
+      compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveLiveBalanceQuery');
 
       if (products && products.length > 0) {
         setupInterfaceOnlineMode();
         renderCategoryTabs();
         renderCatalog();
-        activateScreensaverSplashMode();
+        
+        // FIXED: Only auto-fire screensaver if preference maps explicitly allow it
+        if (isWelcomeScreenEnabledSetting) {
+          activateScreensaverSplashMode();
+        } else {
+          document.getElementById('screensaver-splash').style.display = 'none';
+        }
       } else {
-        // Hide welcome if no products are loaded on early runtime configurations
         document.getElementById('screensaver-splash').style.display = 'none';
       }
       
@@ -710,7 +707,7 @@
             renderCategoryTabs();
             renderCatalog();
             
-            if (document.getElementById('screensaver-splash').style.display === 'flex') {
+            if (isWelcomeScreenEnabledSetting && document.getElementById('screensaver-splash').style.display === 'flex') {
               activateScreensaverSplashMode();
             }
           }
@@ -780,7 +777,6 @@
       const text = document.getElementById('suggest-text').value.trim();
       
       if (!alpha || !text) return alert("Please fill out all request parameters.");
-      if (alpha.length !== 6) return alert("Alpha Number must be exactly 6 digits.");
       
       const suggestionEntry = {
         actionType: "SUGGESTION",
@@ -807,7 +803,7 @@
       triggerHapticPulse(15);
       document.getElementById('hub-modal').style.display = 'none';
       document.getElementById('balance-modal').style.display = 'flex';
-      document.getElementById('balance-query-feedback').innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
+      document.getElementById('balance-query-feedback').innerText = "Enter your Alpha Number to view your active account balance.";
     }
     function closeBalanceModal() {
       document.getElementById('balance-modal').style.display = 'none';
@@ -841,7 +837,7 @@
           });
         }
       } else {
-        label.innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
+        label.innerText = "Enter your Alpha Number to view your active account balance.";
       }
     }
 
@@ -1169,7 +1165,8 @@
       }
     }
 
-    const ADMIN_PASSWORD = "1234";
+    // FIXED: Operational password re-assigned to 'DIRTY30'
+    const ADMIN_PASSWORD = "DIRTY30";
     function promptAdminPassword() {
       const entry = prompt("Enter manager system access pin:");
       if (entry === ADMIN_PASSWORD) openAdminPanel();
