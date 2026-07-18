@@ -199,7 +199,36 @@
     .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
     .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
 
-    /* FIXED: Ensured fixed coordinates keep overlay banners layout-isolated from blocking grid fields */
+    /* FIXED: Restructured Top Spenders List rows with neat structural parameters */
+    .leaderboard-container { text-align: left; max-height: 320px; overflow-y: auto; margin-bottom: 12px; }
+    .leaderboard-row { 
+      display: flex; align-items: center; justify-content: space-between; 
+      padding: 14px 16px; border-radius: 16px; margin-bottom: 8px; 
+      border: 1px solid var(--border); background: #fafafa; box-sizing: border-box;
+    }
+    .leaderboard-rank { 
+      font-weight: 800; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; margin-right: 12px; 
+      background: #e2e8f0; color: var(--text-muted); flex-shrink: 0;
+    }
+    .rank-1 { background: #fffdeb; border-color: #fef08a; }
+    .rank-1 .leaderboard-rank { background: #fef08a; color: #a16207; }
+    .rank-2 { background: #f8fafc; border-color: #cbd5e1; }
+    .rank-2 .leaderboard-rank { background: #e2e8f0; color: #475569; }
+    .rank-3 { background: #fffaf5; border-color: #ffedd5; }
+    .rank-3 .leaderboard-rank { background: #ffedd5; color: #c2410c; }
+    .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); flex-shrink: 0; text-align: right; margin-left: 8px; }
+
+    /* FIXED: Enforced strict color mapping metrics onto synchronization badge classes */
+    .sync-status { 
+      font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px;
+      display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+    }
+    .sync-success { background: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0 !important; }
+    .sync-loading { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important; }
+    .sync-subtle-ready { background: #f1f5f9 !important; color: #475569 !important; border-color: #cbd5e1 !important; }
+
     .toast-notification {
       position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
       background: var(--primary); color: white; padding: 22px 44px; border-radius: 40px;
@@ -495,7 +524,6 @@
       }
     }
 
-    // FIXED: Corrected named pointer mappings to initialize keypad handlers cleanly
     function initApp() {
       compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field', '');
       compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
@@ -727,9 +755,10 @@
         rankedUsers.forEach((user, index) => {
           const rank = index + 1;
           const card = document.createElement('div');
-          card.className = `leaderboard-row rank-${rank}`;
+          // FIXED: Redesigned the card classes to apply card layout row variables smoothly
+          card.className = `leaderboard-row rank-${rank === 1 ? '1' : rank === 2 ? '2' : rank === 3 ? '3' : 'other'}`;
           card.innerHTML = `
-            <div style="display:flex; align-items:center;">
+            <div style="display:flex; align-items:center; overflow:hidden;">
               <div class="leaderboard-rank">#${rank}</div>
               <div class="leaderboard-identity">${user.name}</div>
             </div>
@@ -987,19 +1016,7 @@
         showToastNotification("Alpha Number not recognized.", true);
       }
     }
-
-    const ADMIN_PASSWORD = "DIRTY30";
-    function promptAdminPassword() {
-      const entry = prompt("Enter manager system access pin:");
-      if (entry === ADMIN_PASSWORD) openAdminPanel();
-    }
-
-    function openAdminPanel() {
-      document.getElementById('admin-panel').style.display = 'flex';
-      renderAdminInventory();
-      renderAdminLogs();
-    }
-
+    
     function closeAdmin() {
       document.getElementById('admin-panel').style.display = 'none';
     }
