@@ -28,6 +28,9 @@
       letter-spacing: -0.01em;
     }
 
+    /* FIXED: Safety freeze target hook applied when modals are displayed */
+    body.modal-open .catalog-side { overflow: hidden !important; }
+
     .admin-trigger {
       position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10;
     }
@@ -130,13 +133,15 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
       display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
     }
+    
+    /* FIXED: Enlarged container slightly to comfortably balance a spacious touch keypad */
     .modal-box { 
-      background: white; width: 95%; max-width: 420px; padding: 32px; border-radius: 28px; 
+      background: white; width: 95%; max-width: 440px; padding: 32px; border-radius: 28px; 
       text-align: center; box-sizing: border-box; border: 1px solid var(--border);
       box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
     }
-    .modal-box h3 { margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: var(--primary); }
-    .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
+    .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
+    .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
     
     .leaderboard-container { text-align: left; max-height: 380px; overflow-y: auto; margin-bottom: 10px; padding-right: 4px; }
     .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
@@ -148,20 +153,25 @@
     .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
     .alpha-input { 
-      width: 100%; padding: 16px; font-size: 28px; font-weight: 800; border: 2px solid var(--border); 
-      border-radius: 16px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
-      background: #f8fafc; color: var(--primary); letter-spacing: 2px;
+      width: 100%; padding: 18px; font-size: 32px; font-weight: 800; border: 2px solid var(--border); 
+      border-radius: 18px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
+      background: #f8fafc; color: var(--primary); letter-spacing: 4px;
     }
 
-    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    /* FIXED: Keypad spacing optimized for finger target areas on standard iPad sizes */
+    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
     .key-btn { 
-      background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 16px; 
-      padding: 18px; font-size: 22px; font-weight: 700; cursor: pointer;
+      background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 18px; 
+      padding: 22px 12px; font-size: 26px; font-weight: 700; cursor: pointer;
+      user-select: none; -webkit-user-select: none; transition: transform 0.05s ease, background-color 0.1s ease;
     }
+    /* FIXED: Tactile elastic shrink effect when pressed provides clear tap feedback */
+    .key-btn:active { transform: scale(0.95); background-color: #cbd5e1; }
     .key-clear { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
+    .key-clear:active { background-color: #fee2e2; }
 
-    .modal-actions { display: flex; gap: 12px; }
-    .btn-modal { flex: 1; padding: 16px; font-size: 15px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
+    .modal-actions { display: flex; gap: 14px; }
+    .btn-modal { flex: 1; padding: 18px; font-size: 16px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
     .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
     .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
 
@@ -299,11 +309,10 @@
       if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    // FIXED: Deleted all audio generators except for the final checkout success chord structure
     function playCheckoutSuccessSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const chords = [523.25, 659.25, 783.99, 1174.66]; // C5, E5, G5, D6 harmonic chimes
+        const chords = [523.25, 659.25, 783.99, 1174.66];
         chords.forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -439,6 +448,9 @@
 
     function openLeaderboardModal() {
       triggerHapticPulse(15);
+      // FIXED: Freezes background window interaction on deployment entries
+      document.body.classList.add('modal-open');
+      
       const root = document.getElementById('leaderboard-list-root');
       if (!root) return;
       root.innerHTML = '';
@@ -478,6 +490,8 @@
     }
 
     function closeLeaderboardModal() {
+      // FIXED: Restores scrolling references smoothly
+      document.body.classList.remove('modal-open');
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
 
@@ -660,10 +674,14 @@
     function openPaymentModal() { 
       if (cart.length === 0) return; 
       triggerHapticPulse(15);
+      // FIXED: Freeze storefront gestures when checkout numeric entry launches
+      document.body.classList.add('modal-open');
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
     function closePaymentModal() { 
+      // FIXED: Restores screen gestures safely
+      document.body.classList.remove('modal-open');
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
     }
@@ -697,7 +715,6 @@
       const userProfile = authorizedUsers[alphaNumber];
 
       if (userProfile || !isTerminalOnline) {
-        // FIXED: Only trigger synthesized audio on premium checkout success events
         playCheckoutSuccessSound();
         triggerHapticPulse([40, 40, 40]);
 
