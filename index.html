@@ -45,10 +45,21 @@
     
     .nav-action-btn {
       background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
-      padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex;
+      padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex;
       align-items: center; gap: 6px; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+
+    /* Customer Center Menu Hub Buttons */
+    .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+    .hub-btn {
+      background: #f8fafc; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
+      padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left;
+      display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;
+    }
+    .hub-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .hub-btn:active { transform: scale(0.98); }
+    .hub-arrow { color: var(--text-muted); font-size: 18px; font-weight: bold; }
 
     .category-bar {
       display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
@@ -140,13 +151,14 @@
     .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
     .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
     
-    /* Integrated Layout Adjustments inside unified customer centers */
-    .leaderboard-container { text-align: left; max-height: 240px; overflow-y: auto; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); }
-    .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; margin-bottom: 6px; border: 1px solid var(--border); background: #fafafa; }
-    .leaderboard-rank { font-weight: 800; font-size: 14px; width: 24px; height: 28px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: var(--text-muted); }
-    .rank-1 .leaderboard-rank { font-size: 18px; }
-    .leaderboard-identity { flex: 1; font-weight: 600; font-size: 14px; color: var(--text); }
-    .leaderboard-score { font-weight: 700; font-size: 14px; color: var(--text-muted); }
+    .leaderboard-container { text-align: left; max-height: 320px; overflow-y: auto; margin-bottom: 12px; }
+    .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); background: #fafafa; }
+    .leaderboard-rank { font-weight: 800; font-size: 15px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; background: #f1f5f9; color: var(--text-muted); }
+    .rank-1 .leaderboard-rank { background: #fef08a; color: #a16207; }
+    .rank-2 .leaderboard-rank { background: #e2e8f0; color: #475569; }
+    .rank-3 .leaderboard-rank { background: #ffedd5; color: #c2410c; }
+    .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
+    .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
     .suggestion-textarea {
       width: 100%; height: 120px; padding: 14px; font-size: 16px; border: 2px solid var(--border);
@@ -210,9 +222,8 @@
     <div class="section-header">
       <h2>30th Company Wardroom Store</h2>
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="nav-action-btn" onclick="openSuggestionModal()">📝 Suggestions</button>
-        <!-- FIXED: Combined balance lookup and leaderboard button layout under user friendliness guidelines -->
-        <button class="nav-action-btn" onclick="openBalanceModal()">💰 Customer Center</button>
+        <!-- FIXED: Simplified navigation bar down to a single clean Customer Center link -->
+        <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
       </div>
     </div>
     <div class="category-bar" id="category-tabs-container"></div>
@@ -233,6 +244,30 @@
     </div>
   </div>
 
+  <!-- FIXED: New Centralized Main Directory Dashboard Overlay Menu -->
+  <div class="modal-overlay" id="hub-modal">
+    <div class="modal-box">
+      <h3>Customer Center</h3>
+      <p>Select an option from the menu below to manage your account options.</p>
+      
+      <div class="hub-menu-grid">
+        <button class="hub-btn" onclick="openBalanceModal()">
+          <span>🔍 Look Up My Balance</span><span class="hub-arrow">→</span>
+        </button>
+        <button class="hub-btn" onclick="openLeaderboardModal()">
+          <span>🏆 View Top Spenders</span><span class="hub-arrow">→</span>
+        </button>
+        <button class="hub-btn" onclick="openSuggestionModal()">
+          <span>📝 Leave a Store Suggestion</span><span class="hub-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" onclick="closeHubModal()" style="width:100%">Back to Store</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="suggestion-modal">
     <div class="modal-box">
       <h3>Wardroom Suggestion Box</h3>
@@ -240,29 +275,30 @@
       <input type="text" class="alpha-input" id="suggest-alpha" placeholder="6-Digit Alpha" maxlength="6" style="font-size:20px; padding:14px; margin-bottom:12px; letter-spacing: 1px;">
       <textarea class="suggestion-textarea" id="suggest-text" placeholder="Type what you want to see added to the store..."></textarea>
       <div class="modal-actions">
-        <button class="btn-modal btn-cancel" onclick="closeSuggestionModal()">Cancel</button>
+        <button class="btn-modal btn-cancel" onclick="closeSuggestionModal()">Back</button>
         <button class="btn-modal btn-submit" onclick="submitStoreSuggestion()">Submit Idea</button>
       </div>
     </div>
   </div>
 
-  <!-- FIXED: Unified customer portal tracking screen containing interactive balance queries and live rankings together -->
   <div class="modal-overlay" id="balance-modal">
     <div class="modal-box">
-      <h3>Customer Center</h3>
+      <h3>Balance Lookup</h3>
       <p id="balance-query-feedback">Enter your 6-digit Alpha Number to view your active account balance.</p>
       <input type="text" class="alpha-input" id="lookup-alpha" placeholder="------" readonly>
       <div class="keypad-grid" id="lookup-keypad"></div>
-      
-      <!-- FIXED: Real-time leaderboard embedded cleanly into customer center footer -->
-      <div class="leaderboard-container">
-        <h4 style="margin:0 0 10px 0; text-align:left; font-size:14px; color:var(--text-muted); font-weight:700; letter-spacing:0.02em;">🏆 STORE LEADERS</h4>
-        <div id="leaderboard-list-root"></div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" onclick="closeBalanceModal()" style="width:100%">Back</button>
       </div>
+    </div>
+  </div>
 
-      <div class="modal-actions" style="margin-top:16px;">
-        <button class="btn-modal btn-cancel" onclick="closeBalanceModal()" style="width:100%">Close Window</button>
-      </div>
+  <div class="modal-overlay" id="leaderboard-modal">
+    <div class="modal-box" style="max-width: 460px;">
+      <h3>Wardroom Spenders</h3>
+      <p>Current top 5 account balances driving company support metrics.</p>
+      <div class="leaderboard-container" id="leaderboard-list-root"></div>
+      <button class="btn-modal btn-cancel" style="width:100%;" onclick="closeLeaderboardModal()">Back</button>
     </div>
   </div>
 
@@ -364,6 +400,8 @@
       closePaymentModal();
       closeBalanceModal();
       closeSuggestionModal();
+      closeLeaderboardModal();
+      closeHubModal();
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
       showToastNotification("Kiosk reset due to inactivity.", true);
@@ -378,13 +416,12 @@
         html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '${i}', '${actionCallbackFnName}')">${i}</button>`;
       }
       html += `<button class="key-btn key-clear" onclick="pressSharedKey('${fieldInputId}', 'CLEAR', '${actionCallbackFnName}')">C</button>`;
-      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '0', '${actionCallbackFnName}')">0</button>`;
+      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '0', '${actionCallbackFnName}')">${0}</button>`;
       html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', 'BACKSPACE', '${actionCallbackFnName}')">⌫</button>`;
       
       container.innerHTML = html;
     }
 
-    // FIXED: Adjusted character limit maps from 10 down to 6 to lock values to exactly 6 digits
     function pressSharedKey(fieldId, value, callbackName) {
       triggerHapticPulse(10);
       const field = document.getElementById(fieldId);
@@ -395,7 +432,7 @@
       } else if (value === 'BACKSPACE') {
         field.value = field.value.slice(0, -1);
       } else {
-        if (field.value.length < 6) field.value += value; // FIXED: Enforced 6 digit maximum boundaries
+        if (field.value.length < 6) field.value += value;
       }
       
       if (callbackName && window[callbackName]) {
@@ -478,16 +515,27 @@
         .catch(err => console.log("User mapping locked."));
     }
 
-    function openSuggestionModal() {
+    // NEW HUB MODAL ROUTINES
+    function openHubModal() {
       triggerHapticPulse(15);
       document.body.classList.add('modal-open');
+      document.getElementById('hub-modal').style.display = 'flex';
+    }
+    function closeHubModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('hub-modal').style.display = 'none';
+    }
+
+    function openSuggestionModal() {
+      triggerHapticPulse(15);
+      document.getElementById('hub-modal').style.display = 'none'; // Temporarily hide hub underneath
       document.getElementById('suggestion-modal').style.display = 'flex';
     }
     function closeSuggestionModal() {
-      document.body.classList.remove('modal-open');
       document.getElementById('suggestion-modal').style.display = 'none';
       document.getElementById('suggest-alpha').value = '';
       document.getElementById('suggest-text').value = '';
+      document.getElementById('hub-modal').style.display = 'flex'; // Return cleanly to hub
     }
     function submitStoreSuggestion() {
       const alpha = document.getElementById('suggest-alpha').value.trim().toUpperCase();
@@ -507,19 +555,49 @@
       localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
       
       showToastNotification("Idea shared! Thank you for your feedback.", false);
-      closeSuggestionModal();
+      
+      // Cleanup arrays and close back out to baseline storefront completely
+      document.getElementById('suggest-alpha').value = '';
+      document.getElementById('suggest-text').value = '';
+      document.getElementById('suggestion-modal').style.display = 'none';
+      document.body.classList.remove('modal-open');
+      
       updateNetworkIndicatorStatus();
       setTimeout(checkNetworkAndSyncQueue, 500);
     }
 
-    // FIXED: Formatted lookup actions to compile rankings and balance values cleanly inside one container
     function openBalanceModal() {
       triggerHapticPulse(15);
-      document.body.classList.add('modal-open');
+      document.getElementById('hub-modal').style.display = 'none';
       document.getElementById('balance-modal').style.display = 'flex';
       document.getElementById('balance-query-feedback').innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
+    }
+    function closeBalanceModal() {
+      document.getElementById('balance-modal').style.display = 'none';
+      document.getElementById('lookup-alpha').value = '';
+      document.getElementById('hub-modal').style.display = 'flex';
+    }
+    function evaluateLiveBalanceQuery(currentValue) {
+      const alpha = currentValue.trim().toUpperCase();
+      const label = document.getElementById('balance-query-feedback');
       
-      // Render Leaderboard contents directly inside Customer portal base frame
+      if (alpha.length === 6) { 
+        const profile = authorizedUsers[alpha];
+        if (profile) {
+          const balance = parseFloat(profile.bill) || 0;
+          label.innerHTML = `<span style="color:var(--success); font-weight:700;">Welcome back, ${profile.firstName}!</span><br>Your current balance is: <strong style="color:var(--primary)">$${balance.toFixed(2)}</strong>`;
+        } else {
+          label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
+        }
+      } else {
+        label.innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
+      }
+    }
+
+    function openLeaderboardModal() {
+      triggerHapticPulse(15);
+      document.getElementById('hub-modal').style.display = 'none';
+      
       const root = document.getElementById('leaderboard-list-root');
       if (!root) return;
       root.innerHTML = '';
@@ -538,7 +616,7 @@
         .slice(0, 5);
 
       if (rankedUsers.length === 0) {
-        root.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 10px 0; font-size:13px;">No active spenders calculated yet.</p>';
+        root.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0; font-size:15px;">No active spenders calculated yet.</p>';
       } else {
         rankedUsers.forEach((user, index) => {
           const rank = index + 1;
@@ -554,31 +632,12 @@
           root.appendChild(card);
         });
       }
+      document.getElementById('leaderboard-modal').style.display = 'flex';
     }
 
-    function closeBalanceModal() {
-      document.body.classList.remove('modal-open');
-      document.getElementById('balance-modal').style.display = 'none';
-      document.getElementById('lookup-alpha').value = '';
-    }
-
-    // FIXED: Gated validation lookups so they only trigger if exactly 6 characters exist inside the query sequence
-    function evaluateLiveBalanceQuery(currentValue) {
-      const alpha = currentValue.trim().toUpperCase();
-      const label = document.getElementById('balance-query-feedback');
-      
-      if (alpha.length === 6) { // FIXED: Strict length evaluation checkpoint hook
-        const profile = authorizedUsers[alpha];
-        if (profile) {
-          const balance = parseFloat(profile.bill) || 0;
-          label.innerHTML = `<span style="color:var(--success); font-weight:700;">Welcome back, ${profile.firstName}!</span><br>Your current balance is: <strong style="color:var(--primary)">$${balance.toFixed(2)}</strong>`;
-        } else {
-          label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
-        }
-      } else {
-        // Keeps user instructions clean while typing up to the mandatory index threshold
-        label.innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
-      }
+    function closeLeaderboardModal() {
+      document.getElementById('leaderboard-modal').style.display = 'none';
+      document.getElementById('hub-modal').style.display = 'flex';
     }
 
     function checkNetworkAndSyncQueue() {
