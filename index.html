@@ -30,17 +30,20 @@
 
     body.modal-open .catalog-side { overflow: hidden !important; }
 
+    /* FIXED: Admin panel activation button relocated securely to the top-left boundary */
     .admin-trigger {
-      position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 50;
+      position: absolute; top: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10001;
     }
 
     .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; height: 100vh; }
     
+    /* FIXED: Aligned section header title parameters with the connection flag */
     .section-header { 
       position: sticky; top: -32px; background-color: var(--bg); z-index: 21;
       padding-top: 32px; padding-bottom: 8px; margin-bottom: 0;
       display: flex; justify-content: space-between; align-items: center; 
     }
+    .title-area { display: flex; align-items: center; gap: 12px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
     .nav-action-btn {
@@ -100,6 +103,14 @@
     }
     
     .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    
+    /* NEW: Sleek sub-action Clear Cart trigger profile */
+    .clear-cart-trigger-btn {
+      background: transparent; border: 1px solid #fca5a5; color: var(--danger); padding: 6px 12px;
+      font-size: 12px; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.1s ease;
+    }
+    .clear-cart-trigger-btn:hover { background: #fef2f2; }
+
     .receipt-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
     
     .cart-item {
@@ -134,7 +145,6 @@
     .btn-pay:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
     .btn-pay:active { transform: translateY(0); }
 
-    /* NEW FEATURE CSS: Premium Screensaver Display Layer Elements */
     .screensaver-splash-view {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b1329;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -142,7 +152,6 @@
     }
     .screensaver-canvas-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events: none; opacity: 0.35; }
     
-    /* Gliding Ambient Dynamic Product Tags */
     .drifting-showcase-node {
       position: absolute; background: white; padding: 10px 14px; border-radius: 16px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
@@ -168,6 +177,12 @@
       background: linear-gradient(135deg, var(--accent), #1d4ed8); border-radius: 20px;
       box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); animation: pulseGlowSwell 2s infinite;
     }
+
+    /* Admin Feature Toggle Elements */
+    .toggle-row-setting {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: #f8fafc; border-radius: 12px;
+    }
+    .toggle-switch-input { transform: scale(1.3); cursor: pointer; margin-right: 8px; }
 
     @keyframes bounceInSwell {
       0% { transform: scale(0.85); opacity: 0; }
@@ -273,7 +288,6 @@
 </head>
 <body onclick="resetIdleTimeout()" ontouchstart="resetIdleTimeout()">
 
-  <!-- NEW FEATURE DOM: Standalone Screensaver / Attraction View Overlay Block -->
   <div class="screensaver-splash-view" id="screensaver-splash" onclick="dismissScreensaverSplash()">
     <div class="screensaver-canvas-container" id="screensaver-nodes-canvas"></div>
     <div class="splash-hero-dialog-card">
@@ -285,11 +299,16 @@
 
   <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
+  <!-- FIXED: Invisible manager panel sensor patch reassigned to the top left frame boundaries -->
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
   <div class="catalog-side">
     <div class="section-header">
-      <h2>30th Company Wardroom Store</h2>
+      <!-- FIXED: Connected network flag relocated cleanly next to your main Title text -->
+      <div class="title-area">
+        <h2>30th Company Wardroom Store</h2>
+        <div id="sync-indicator" class="sync-status sync-loading">Connecting...</div>
+      </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
       </div>
@@ -300,9 +319,10 @@
   </div>
 
   <div class="receipt-side">
+    <!-- FIXED: Introduced clear cart utility block into right sidebar panel header area -->
     <div class="cart-header">
       <h2>Your Cart</h2>
-      <div id="sync-indicator" class="sync-status sync-loading">Connecting...</div>
+      <button class="clear-cart-trigger-btn" onclick="promptClearCartConfirmationDialog()">🗑️ Clear Cart</button>
     </div>
     <div class="receipt-items" id="cart-list">
       <p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>
@@ -390,7 +410,18 @@
     </div>
     <div class="admin-content">
       <div class="admin-column">
-        <h3 style="margin:0 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
+        <h3 style="margin:0 0 16px 0; font-size:18px;">Kiosk Storefront Preferences</h3>
+        
+        <!-- FIXED: Implemented Welcome Screen Activation Preference Toggle Switch Control Node -->
+        <div class="toggle-row-setting">
+          <div>
+            <strong style="font-size:15px; color:var(--primary);">Enable Welcome Screen</strong><br>
+            <small style="color:var(--text-muted);">Launch floating attraction screensaver during periods of store inactivity.</small>
+          </div>
+          <input type="checkbox" id="welcome-screen-toggle-setting" class="toggle-switch-input" checked onchange="handleWelcomeScreenPreferenceToggle(this)">
+        </div>
+
+        <h3 style="margin:24px 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
         <button class="btn-modal btn-submit" style="width:100%; margin-bottom: 12px; padding:14px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
         <button class="btn-modal btn-submit" style="width:100%; background: var(--accent); padding:14px;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
         <h3 style="margin-top:32px; margin-bottom:12px; font-size:18px;">Active Storefront Directory</h3>
@@ -423,9 +454,11 @@
     let idleTrackerTimer = null;
     let warningBannerTimer = null;
 
-    // NEW: Screensaver Animation Properties
     let screensaverAnimationId = null;
     let screensaverNodesArray = [];
+    
+    // NEW: Persistent tracking hook for screensaver runtime execution properties
+    let isWelcomeScreenEnabledSetting = JSON.parse(localStorage.getItem('kiosk_setting_welcome_enabled')) !== false;
 
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
@@ -460,7 +493,6 @@
     }
     setInterval(checkScheduledNightlyRecoveryTime, 60000);
 
-    // FIXED: Operational Inactivity Timers re-routed to automatically pull up the Welcome Stage screen after 60 seconds
     function resetIdleTimeout() {
       clearTimeout(idleTrackerTimer);
       clearTimeout(warningBannerTimer);
@@ -469,11 +501,10 @@
         banner.className = 'toast-notification';
       }
       
-      // If user is actively typing or viewing main storefront, stand up timeout monitors
       if (document.getElementById('screensaver-splash').style.display !== 'flex') {
         idleTrackerTimer = setTimeout(() => {
           triggerWarningTimeoutNotification();
-        }, 53000); // Trigger warning state at 53 seconds
+        }, 53000); 
       }
     }
 
@@ -482,7 +513,6 @@
         showToastNotification("Are you still checking out? Resetting soon...", false, true);
         warningBannerTimer = setTimeout(() => { purgeCartDueToTimeout(); }, 7000);
       } else {
-        // If cart is empty, seamlessly present screensaver billboard without throwing warning alerts
         activateScreensaverSplashMode();
       }
     }
@@ -500,9 +530,32 @@
       activateScreensaverSplashMode();
     }
 
-    // NEW FEATURES: Interactive Screensaver Lifecycle Engine
+    // NEW: Interactive clear cart verification step mapping routines
+    function promptClearCartConfirmationDialog() {
+      if (cart.length === 0) return;
+      triggerHapticPulse(15);
+      if (confirm("Are you sure you want to empty your current cart layout completely?")) {
+        cart = [];
+        updateUI();
+        showToastNotification("Shopping cart emptied successfully.", false);
+        resetIdleTimeout();
+      }
+    }
+
+    // NEW: Settings control handle framework updates
+    function handleWelcomeScreenPreferenceToggle(checkboxElement) {
+      isWelcomeScreenEnabledSetting = checkboxElement.checked;
+      localStorage.setItem('kiosk_setting_welcome_enabled', JSON.stringify(isWelcomeScreenEnabledSetting));
+      if (!isWelcomeScreenEnabledSetting) {
+        document.getElementById('screensaver-splash').style.display = 'none';
+        cancelAnimationFrame(screensaverAnimationId);
+      }
+    }
+
     function activateScreensaverSplashMode() {
-      // Clear dynamic lists to protect session profiles
+      // Safety skip execution if preference maps declare welcome stages turned off
+      if (!isWelcomeScreenEnabledSetting) return;
+
       cart = [];
       updateUI();
       closePaymentModal();
@@ -519,7 +572,6 @@
       screensaverNodesArray = [];
       splashOverlay.style.display = 'flex';
       
-      // Select up to 12 random catalog assets to populate floating screensaver matrix nodes
       const usableSamplePool = products.filter(p => p && p.name).sort(() => 0.5 - Math.random()).slice(0, 12);
       
       usableSamplePool.forEach(prod => {
@@ -537,13 +589,12 @@
         
         canvas.appendChild(node);
         
-        // Define bounded kinematic tracking references
         screensaverNodesArray.push({
           element: node,
           x: Math.random() * (window.innerWidth - 220),
           y: Math.random() * (window.innerHeight - 80),
-          dx: (Math.random() - 0.5) * 1.2, // Drifting speed horizontal axis
-          dy: (Math.random() - 0.5) * 1.2, // Drifting speed vertical axis
+          dx: (Math.random() - 0.5) * 1.2, 
+          dy: (Math.random() - 0.5) * 1.2, 
           width: 220,
           height: 70
         });
@@ -554,15 +605,14 @@
     }
 
     function executeScreensaverKinematicFrameLoop() {
+      if (!isWelcomeScreenEnabledSetting) return;
       screensaverNodesArray.forEach(node => {
         node.x += node.dx;
         node.y += node.dy;
 
-        // Bounded physics collision checks edge constraints
         if (node.x <= 0 || node.x + node.width >= window.innerWidth) node.dx *= -1;
         if (node.y <= 0 || node.y + node.height >= window.innerHeight) node.dy *= -1;
 
-        // Enforce 3D boundary maps securely to hardware planes
         node.element.style.transform = `translate3d(${node.x}px, ${node.y}px, 0px)`;
       });
 
@@ -610,6 +660,9 @@
     }
 
     function initApp() {
+      // Sync internal layout checkboxes to local storage toggle settings properties
+      document.getElementById('welcome-screen-toggle-setting').checked = isWelcomeScreenEnabledSetting;
+
       compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field', '');
       compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
 
@@ -617,8 +670,10 @@
         setupInterfaceOnlineMode();
         renderCategoryTabs();
         renderCatalog();
-        // Activate screensaver instantly upon configuration pulls if items exist
         activateScreensaverSplashMode();
+      } else {
+        // Hide welcome if no products are loaded on early runtime configurations
+        document.getElementById('screensaver-splash').style.display = 'none';
       }
       
       fetchCloudInventory();
@@ -655,7 +710,6 @@
             renderCategoryTabs();
             renderCatalog();
             
-            // Re-trigger screensaver on fresh network updates if still active
             if (document.getElementById('screensaver-splash').style.display === 'flex') {
               activateScreensaverSplashMode();
             }
@@ -1104,7 +1158,6 @@
         clearTimeout(warningBannerTimer);
         updateNetworkIndicatorStatus();
 
-        // FIXED: Immediately transitions the interface straight back to screensaver attraction layout upon completion
         setTimeout(() => {
           activateScreensaverSplashMode();
         }, 1500);
