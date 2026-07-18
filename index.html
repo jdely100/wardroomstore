@@ -40,7 +40,7 @@
       box-shadow: -4px 0 24px rgba(15, 23, 42, 0.04); border-left: 1px solid var(--border); z-index: 2;
     }
     
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
     .nav-action-btn {
@@ -49,6 +49,14 @@
       align-items: center; gap: 6px; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+
+    /* NEW: Live Store Insights Banner Style Framework */
+    .insights-ticker-banner {
+      background: #eff6ff; border: 1px solid #bfdbfe; color: var(--accent);
+      padding: 12px 20px; border-radius: 16px; margin-bottom: 28px; font-size: 14px;
+      font-weight: 600; display: flex; align-items: center; gap: 8px;
+      transition: all 0.3s ease; min-height: 20px;
+    }
 
     .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
     .hub-btn {
@@ -233,6 +241,10 @@
         <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
       </div>
     </div>
+    
+    <!-- NEW: Live Rotating Analytics Banner Container Placement Hook -->
+    <div id="insights-ticker" class="insights-ticker-banner">💡 Loading live store insights...</div>
+
     <div class="category-bar" id="category-tabs-container"></div>
     <div class="grid" id="catalog"></div>
   </div>
@@ -361,6 +373,9 @@
     let idleTrackerTimer = null;
     let warningBannerTimer = null;
 
+    // NEW: Analytics rotation trackers
+    let currentInsightStepIndex = 0;
+
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
     }
@@ -382,6 +397,77 @@
         });
       } catch(e) {}
     }
+
+    function checkScheduledNightlyRecoveryTime() {
+      const now = new Date();
+      if (now.getHours() === 3 && now.getMinutes() === 0) {
+        if (cart.length === 0 && offlineQueue.length === 0) {
+          console.log("Nightly recovery checkpoint reached. Refreshing kiosk subsystems...");
+          window.location.reload();
+        }
+      }
+    }
+    setInterval(checkScheduledNightlyRecoveryTime, 60000);
+
+    // NEW FEATURE: Dynamic Insight Data Matrix Compiler Engine
+    function rotateLiveStoreInsightsBanner() {
+      const ticker = document.getElementById('insights-ticker');
+      if (!ticker) return;
+
+      if (!salesHistory || salesHistory.length === 0) {
+        ticker.innerHTML = `🌟 <span>All systems operational — Welcome to the 30th Company Wardroom Store!</span>`;
+        return;
+      }
+
+      // Calculate aggregates parsing raw data arrays on the fly
+      let totalItemVolumeCount = 0;
+      let totalValueRevenueSum = 0;
+      let productFrequencyMap = {};
+
+      salesHistory.forEach(log => {
+        // Parse raw string numeric prices smoothly
+        const numericalValue = parseFloat(String(log.grandTotal).replace(/[^0-9.]/g, '')) || 0;
+        totalValueRevenueSum += numericalValue;
+
+        // Parse list item summary metadata maps safely
+        if (log.summary) {
+          const brokenFragments = log.summary.split(', ');
+          brokenFragments.forEach(frag => {
+            const matchResult = frag.match(/(.+)\s\(x(\d+)\)/);
+            if (matchResult && matchResult[1] && matchResult[2]) {
+              const productName = matchResult[1].trim();
+              const productQty = parseInt(matchResult[2], 10) || 1;
+              
+              totalItemVolumeCount += productQty;
+              productFrequencyMap[productName] = (productFrequencyMap[productName] || 0) + productQty;
+            }
+          });
+        }
+      });
+
+      // Find highest frequency seller object
+      let topSellingProductName = "None";
+      let topSellingProductMaxCount = 0;
+      Object.keys(productFrequencyMap).forEach(name => {
+        if (productFrequencyMap[name] > topSellingProductMaxCount) {
+          topSellingProductMaxCount = productFrequencyMap[name];
+          topSellingProductName = name;
+        }
+      });
+
+      // Step out loop filters cleanly every 5 seconds
+      currentInsightStepIndex = (currentInsightStepIndex + 1) % 3;
+
+      if (currentInsightStepIndex === 0) {
+        ticker.innerHTML = `🔥 <span style="animation: fadeIn 0.3s;">Top Snack Today: <strong>${topSellingProductName}</strong> (x${topSellingProductMaxCount} sold)</span>`;
+      } else if (currentInsightStepIndex === 1) {
+        ticker.innerHTML = `📈 <span style="animation: fadeIn 0.3s;">Total Shift Volume: <strong>${totalItemVolumeCount}</strong> products processed</span>`;
+      } else {
+        ticker.innerHTML = `💼 <span style="animation: fadeIn 0.3s;">Total Value Supported: <strong>$${totalValueRevenueSum.toFixed(2)}</strong> this session</span>`;
+      }
+    }
+    // Launch rotation thread execution loops
+    setInterval(rotateLiveStoreInsightsBanner, 5000);
 
     function resetIdleTimeout() {
       clearTimeout(idleTrackerTimer);
@@ -459,6 +545,7 @@
       fetchCloudInventory();
       downloadAuthorizedUsers(); 
       updateUI();
+      rotateLiveStoreInsightsBanner(); // Prime analytics data view states instantly
       
       setInterval(() => { checkNetworkAndSyncQueue(); }, 15000);
     }
@@ -520,14 +607,13 @@
           }
         })
         .catch(err => {
-          console.log("User mapping locked.");
+          console.log("Using local database cache fallback.");
           if (callback) callback();
         });
     }
 
     function openHubModal() {
       triggerHapticPulse(15);
-      // FIXED: Forces a fresh background spreadsheet download sequence every time the hub opens to clear sheet value desyncs
       downloadAuthorizedUsers();
       document.body.classList.add('modal-open');
       document.getElementById('hub-modal').style.display = 'flex';
@@ -588,52 +674,66 @@
       document.getElementById('hub-modal').style.display = 'flex';
     }
     
-    // FIXED: Embedded conditional color status formatting engines directly into query loops
     function evaluateLiveBalanceQuery(currentValue) {
       const alpha = currentValue.trim().toUpperCase();
       const label = document.getElementById('balance-query-feedback');
       
       if (alpha.length === 6) { 
-        // Force a priority background download refresh target block to capture changes instantly
-        downloadAuthorizedUsers(() => {
-          const profile = authorizedUsers[alpha];
-          if (profile) {
-            const spent = parseFloat(profile.totalSpent) || 0;
-            const paid = parseFloat(profile.amountPaid) || 0;
-            const outstanding = parseFloat(profile.amountOutstanding) || 0;
-            
-            // Evaluates conditional parameters to toggle color indicators based on full bills paid
-            const isBillPaidInFull = (outstanding <= 0 && spent > 0);
-            const paidColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--text)';
-            const outstandingBgStyle = isBillPaidInFull ? '#f0fdf4' : '#fef2f2';
-            const outstandingBorderStyle = isBillPaidInFull ? '#bbf7d0' : '#fca5a5';
-            const outstandingColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--danger)';
-            const outstandingLabelColor = isBillPaidInFull ? '#166534' : '#b91c1c';
-            
-            label.innerHTML = `
-              <span style="color:var(--accent); font-weight:700; font-size:18px;">Welcome back, ${profile.firstName}!</span>
-              <div class="balance-ledger-grid">
-                <div class="ledger-block">
-                  <div class="ledger-label">Total Spent</div>
-                  <div class="ledger-val">$${spent.toFixed(2)}</div>
-                </div>
-                <div class="ledger-block">
-                  <div class="ledger-label">Amount Paid</div>
-                  <div class="ledger-val" style="color:${paidColorStyle}">$${paid.toFixed(2)}</div>
-                </div>
-                <div class="ledger-block" style="background:${outstandingBgStyle}; border-color:${outstandingBorderStyle};">
-                  <div class="ledger-label" style="color:${outstandingLabelColor}">Outstanding</div>
-                  <div class="ledger-val" style="color:${outstandingColorStyle}">$${outstanding.toFixed(2)}</div>
-                </div>
-              </div>
-            `;
-          } else {
-            label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
-          }
-        });
+        const cachedProfile = authorizedUsers[alpha];
+        if (cachedProfile) {
+          renderBalanceLedgerHTML(cachedProfile);
+          downloadAuthorizedUsers(() => {
+            const freshProfile = authorizedUsers[alpha];
+            if (freshProfile && document.getElementById('balance-modal').style.display === 'flex' && document.getElementById('lookup-alpha').value.toUpperCase() === alpha) {
+              renderBalanceLedgerHTML(freshProfile);
+            }
+          });
+        } else {
+          label.innerHTML = `Searching secure network...`;
+          downloadAuthorizedUsers(() => {
+            const remoteProfile = authorizedUsers[alpha];
+            if (remoteProfile) {
+              renderBalanceLedgerHTML(remoteProfile);
+            } else {
+              label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
+            }
+          });
+        }
       } else {
         label.innerText = "Enter your 6-digit Alpha Number to view your active account balance.";
       }
+    }
+
+    function renderBalanceLedgerHTML(profile) {
+      const label = document.getElementById('balance-query-feedback');
+      const spent = parseFloat(profile.totalSpent) || 0;
+      const paid = parseFloat(profile.amountPaid) || 0;
+      const outstanding = parseFloat(profile.amountOutstanding) || 0;
+      
+      const isBillPaidInFull = (outstanding <= 0 && spent > 0);
+      const paidColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--text)';
+      const outstandingBgStyle = isBillPaidInFull ? '#f0fdf4' : '#fef2f2';
+      const outstandingBorderStyle = isBillPaidInFull ? '#bbf7d0' : '#fca5a5';
+      const outstandingColorStyle = isBillPaidInFull ? 'var(--success)' : 'var(--danger)';
+      const outstandingLabelColor = isBillPaidInFull ? '#166534' : '#b91c1c';
+      
+      label.innerHTML = `
+        <span style="color:var(--accent); font-weight:700; font-size:18px;">Welcome back, ${profile.firstName}!</span>
+        <div class="balance-ledger-grid">
+          <div class="ledger-block">
+            <div class="ledger-label">Total Spent</div>
+            <div class="ledger-val">$${spent.toFixed(2)}</div>
+          </div>
+          <div class="ledger-block">
+            <div class="ledger-label">Amount Paid</div>
+            <div class="ledger-val" style="color:${paidColorStyle}">$${paid.toFixed(2)}</div>
+          </div>
+          <div class="ledger-block" style="background:${outstandingBgStyle}; border-color:${outstandingBorderStyle};">
+            <div class="ledger-label" style="color:${outstandingLabelColor}">Outstanding</div>
+            <div class="ledger-val" style="color:${outstandingColorStyle}">$${outstanding.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
     }
 
     function openLeaderboardModal() {
@@ -916,6 +1016,9 @@
         clearTimeout(idleTrackerTimer);
         clearTimeout(warningBannerTimer);
         updateNetworkIndicatorStatus();
+        
+        // Refresh insights immediately to count new items
+        rotateLiveStoreInsightsBanner();
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
@@ -970,6 +1073,7 @@
     function clearLogs() {
       if (confirm("Clear local device history logs?")) {
         salesHistory = []; localStorage.removeItem('kiosk_history'); renderAdminLogs();
+        rotateLiveStoreInsightsBanner();
       }
     }
 
