@@ -50,26 +50,10 @@
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* NEW: Live Store Insights Banner Style Framework */
-    .insights-ticker-banner {
-      background: #eff6ff; border: 1px solid #bfdbfe; color: var(--accent);
-      padding: 12px 20px; border-radius: 16px; margin-bottom: 28px; font-size: 14px;
-      font-weight: 600; display: flex; align-items: center; gap: 8px;
-      transition: all 0.3s ease; min-height: 20px;
-    }
-
-    .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
-    .hub-btn {
-      background: #f8fafc; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
-      padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left;
-      display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;
-    }
-    .hub-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .hub-btn:active { transform: scale(0.98); }
-    .hub-arrow { color: var(--text-muted); font-size: 18px; font-weight: bold; }
-
+    /* FIXED: Sticky Category Bar locks at top of layout frame during scroll events */
     .category-bar {
-      display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
+      position: sticky; top: 0; background-color: var(--bg); z-index: 10;
+      display: flex; gap: 8px; margin-bottom: 28px; padding-top: 8px; padding-bottom: 12px; overflow-x: auto;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .category-bar::-webkit-scrollbar { display: none; }
@@ -176,6 +160,16 @@
     .ledger-label { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
     .ledger-val { font-size: 16px; font-weight: 800; color: var(--primary); }
 
+    .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+    .hub-btn {
+      background: #f8fafc; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
+      padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left;
+      display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;
+    }
+    .hub-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .hub-btn:active { transform: scale(0.98); }
+    .hub-arrow { color: var(--text-muted); font-size: 18px; font-weight: bold; }
+
     .suggestion-textarea {
       width: 100%; height: 120px; padding: 14px; font-size: 16px; border: 2px solid var(--border);
       border-radius: 14px; box-sizing: border-box; resize: none; background: #f8fafc; font-family: inherit; margin-bottom: 16px;
@@ -242,9 +236,6 @@
       </div>
     </div>
     
-    <!-- NEW: Live Rotating Analytics Banner Container Placement Hook -->
-    <div id="insights-ticker" class="insights-ticker-banner">💡 Loading live store insights...</div>
-
     <div class="category-bar" id="category-tabs-container"></div>
     <div class="grid" id="catalog"></div>
   </div>
@@ -373,9 +364,6 @@
     let idleTrackerTimer = null;
     let warningBannerTimer = null;
 
-    // NEW: Analytics rotation trackers
-    let currentInsightStepIndex = 0;
-
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
     }
@@ -408,66 +396,6 @@
       }
     }
     setInterval(checkScheduledNightlyRecoveryTime, 60000);
-
-    // NEW FEATURE: Dynamic Insight Data Matrix Compiler Engine
-    function rotateLiveStoreInsightsBanner() {
-      const ticker = document.getElementById('insights-ticker');
-      if (!ticker) return;
-
-      if (!salesHistory || salesHistory.length === 0) {
-        ticker.innerHTML = `🌟 <span>All systems operational — Welcome to the 30th Company Wardroom Store!</span>`;
-        return;
-      }
-
-      // Calculate aggregates parsing raw data arrays on the fly
-      let totalItemVolumeCount = 0;
-      let totalValueRevenueSum = 0;
-      let productFrequencyMap = {};
-
-      salesHistory.forEach(log => {
-        // Parse raw string numeric prices smoothly
-        const numericalValue = parseFloat(String(log.grandTotal).replace(/[^0-9.]/g, '')) || 0;
-        totalValueRevenueSum += numericalValue;
-
-        // Parse list item summary metadata maps safely
-        if (log.summary) {
-          const brokenFragments = log.summary.split(', ');
-          brokenFragments.forEach(frag => {
-            const matchResult = frag.match(/(.+)\s\(x(\d+)\)/);
-            if (matchResult && matchResult[1] && matchResult[2]) {
-              const productName = matchResult[1].trim();
-              const productQty = parseInt(matchResult[2], 10) || 1;
-              
-              totalItemVolumeCount += productQty;
-              productFrequencyMap[productName] = (productFrequencyMap[productName] || 0) + productQty;
-            }
-          });
-        }
-      });
-
-      // Find highest frequency seller object
-      let topSellingProductName = "None";
-      let topSellingProductMaxCount = 0;
-      Object.keys(productFrequencyMap).forEach(name => {
-        if (productFrequencyMap[name] > topSellingProductMaxCount) {
-          topSellingProductMaxCount = productFrequencyMap[name];
-          topSellingProductName = name;
-        }
-      });
-
-      // Step out loop filters cleanly every 5 seconds
-      currentInsightStepIndex = (currentInsightStepIndex + 1) % 3;
-
-      if (currentInsightStepIndex === 0) {
-        ticker.innerHTML = `🔥 <span style="animation: fadeIn 0.3s;">Top Snack Today: <strong>${topSellingProductName}</strong> (x${topSellingProductMaxCount} sold)</span>`;
-      } else if (currentInsightStepIndex === 1) {
-        ticker.innerHTML = `📈 <span style="animation: fadeIn 0.3s;">Total Shift Volume: <strong>${totalItemVolumeCount}</strong> products processed</span>`;
-      } else {
-        ticker.innerHTML = `💼 <span style="animation: fadeIn 0.3s;">Total Value Supported: <strong>$${totalValueRevenueSum.toFixed(2)}</strong> this session</span>`;
-      }
-    }
-    // Launch rotation thread execution loops
-    setInterval(rotateLiveStoreInsightsBanner, 5000);
 
     function resetIdleTimeout() {
       clearTimeout(idleTrackerTimer);
@@ -545,7 +473,6 @@
       fetchCloudInventory();
       downloadAuthorizedUsers(); 
       updateUI();
-      rotateLiveStoreInsightsBanner(); // Prime analytics data view states instantly
       
       setInterval(() => { checkNetworkAndSyncQueue(); }, 15000);
     }
@@ -607,11 +534,12 @@
           }
         })
         .catch(err => {
-          console.log("Using local database cache fallback.");
+          console.log("Using local cache reference maps.");
           if (callback) callback();
         });
     }
 
+    // HUB MODAL METHODS
     function openHubModal() {
       triggerHapticPulse(15);
       downloadAuthorizedUsers();
@@ -1016,9 +944,6 @@
         clearTimeout(idleTrackerTimer);
         clearTimeout(warningBannerTimer);
         updateNetworkIndicatorStatus();
-        
-        // Refresh insights immediately to count new items
-        rotateLiveStoreInsightsBanner();
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
@@ -1073,7 +998,6 @@
     function clearLogs() {
       if (confirm("Clear local device history logs?")) {
         salesHistory = []; localStorage.removeItem('kiosk_history'); renderAdminLogs();
-        rotateLiveStoreInsightsBanner();
       }
     }
 
