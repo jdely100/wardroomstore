@@ -50,7 +50,6 @@
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* Customer Center Menu Hub Buttons */
     .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
     .hub-btn {
       background: #f8fafc; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
@@ -160,6 +159,16 @@
     .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
     .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
+    /* FIXED: Clean layout metrics ledger grid for balance query views */
+    .balance-ledger-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; text-align: center;
+    }
+    .ledger-block {
+      background: #f8fafc; padding: 12px 6px; border-radius: 14px; border: 1px solid var(--border);
+    }
+    .ledger-label { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .ledger-val { font-size: 16px; font-weight: 800; color: var(--primary); }
+
     .suggestion-textarea {
       width: 100%; height: 120px; padding: 14px; font-size: 16px; border: 2px solid var(--border);
       border-radius: 14px; box-sizing: border-box; resize: none; background: #f8fafc; font-family: inherit; margin-bottom: 16px;
@@ -222,7 +231,6 @@
     <div class="section-header">
       <h2>30th Company Wardroom Store</h2>
       <div style="display:flex; align-items:center; gap:8px;">
-        <!-- FIXED: Simplified navigation bar down to a single clean Customer Center link -->
         <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
       </div>
     </div>
@@ -244,7 +252,6 @@
     </div>
   </div>
 
-  <!-- FIXED: New Centralized Main Directory Dashboard Overlay Menu -->
   <div class="modal-overlay" id="hub-modal">
     <div class="modal-box">
       <h3>Customer Center</h3>
@@ -416,7 +423,7 @@
         html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '${i}', '${actionCallbackFnName}')">${i}</button>`;
       }
       html += `<button class="key-btn key-clear" onclick="pressSharedKey('${fieldInputId}', 'CLEAR', '${actionCallbackFnName}')">C</button>`;
-      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '0', '${actionCallbackFnName}')">${0}</button>`;
+      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '0', '${actionCallbackFnName}')">0</button>`;
       html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', 'BACKSPACE', '${actionCallbackFnName}')">⌫</button>`;
       
       container.innerHTML = html;
@@ -515,7 +522,6 @@
         .catch(err => console.log("User mapping locked."));
     }
 
-    // NEW HUB MODAL ROUTINES
     function openHubModal() {
       triggerHapticPulse(15);
       document.body.classList.add('modal-open');
@@ -528,14 +534,14 @@
 
     function openSuggestionModal() {
       triggerHapticPulse(15);
-      document.getElementById('hub-modal').style.display = 'none'; // Temporarily hide hub underneath
+      document.getElementById('hub-modal').style.display = 'none'; 
       document.getElementById('suggestion-modal').style.display = 'flex';
     }
     function closeSuggestionModal() {
       document.getElementById('suggestion-modal').style.display = 'none';
       document.getElementById('suggest-alpha').value = '';
       document.getElementById('suggest-text').value = '';
-      document.getElementById('hub-modal').style.display = 'flex'; // Return cleanly to hub
+      document.getElementById('hub-modal').style.display = 'flex'; 
     }
     function submitStoreSuggestion() {
       const alpha = document.getElementById('suggest-alpha').value.trim().toUpperCase();
@@ -556,7 +562,6 @@
       
       showToastNotification("Idea shared! Thank you for your feedback.", false);
       
-      // Cleanup arrays and close back out to baseline storefront completely
       document.getElementById('suggest-alpha').value = '';
       document.getElementById('suggest-text').value = '';
       document.getElementById('suggestion-modal').style.display = 'none';
@@ -577,6 +582,8 @@
       document.getElementById('lookup-alpha').value = '';
       document.getElementById('hub-modal').style.display = 'flex';
     }
+    
+    // FIXED: Formatted lookup display to output all 3 column parameters (Spent, Paid, Outstanding)
     function evaluateLiveBalanceQuery(currentValue) {
       const alpha = currentValue.trim().toUpperCase();
       const label = document.getElementById('balance-query-feedback');
@@ -584,8 +591,27 @@
       if (alpha.length === 6) { 
         const profile = authorizedUsers[alpha];
         if (profile) {
-          const balance = parseFloat(profile.bill) || 0;
-          label.innerHTML = `<span style="color:var(--success); font-weight:700;">Welcome back, ${profile.firstName}!</span><br>Your current balance is: <strong style="color:var(--primary)">$${balance.toFixed(2)}</strong>`;
+          const spent = parseFloat(profile.totalSpent) || 0;
+          const paid = parseFloat(profile.amountPaid) || 0;
+          const outstanding = parseFloat(profile.amountOutstanding) || 0;
+          
+          label.innerHTML = `
+            <span style="color:var(--success); font-weight:700; font-size:18px;">Welcome, ${profile.firstName}!</span>
+            <div class="balance-ledger-grid">
+              <div class="ledger-block">
+                <div class="ledger-label">Total Spent</div>
+                <div class="ledger-val">$${spent.toFixed(2)}</div>
+              </div>
+              <div class="ledger-block">
+                <div class="ledger-label">Amount Paid</div>
+                <div class="ledger-val" style="color:var(--success)">$${paid.toFixed(2)}</div>
+              </div>
+              <div class="ledger-block" style="background:#fef2f2; border-color:#fca5a5;">
+                <div class="ledger-label" style="color:#b91c1c">Outstanding</div>
+                <div class="ledger-val" style="color:var(--danger)">$${outstanding.toFixed(2)}</div>
+              </div>
+            </div>
+          `;
         } else {
           label.innerHTML = `<span style="color:var(--danger); font-weight:600;">Alpha Number not recognized. Please check your digits.</span>`;
         }
@@ -605,7 +631,7 @@
       const rankedUsers = Object.keys(authorizedUsers || {})
         .map(alphaKey => {
           const profile = authorizedUsers[alphaKey];
-          const balance = profile && profile.bill ? parseFloat(profile.bill) : 0; 
+          const balance = profile && profile.totalSpent ? parseFloat(profile.totalSpent) : 0; 
           return {
             name: profile ? `${profile.firstName || ''} ${profile.lastName ? profile.lastName.charAt(0) + '.' : ''}`.trim() : 'Shipmate',
             balance: balance
@@ -853,7 +879,8 @@
 
         if (userProfile) {
           const numericalTotal = parseFloat(finalTotal.replace(/[^0-9.]/g, '')) || 0;
-          userProfile.bill = (parseFloat(userProfile.bill) || 0) + numericalTotal;
+          userProfile.totalSpent = (parseFloat(userProfile.totalSpent) || 0) + numericalTotal;
+          userProfile.amountOutstanding = (parseFloat(userProfile.totalSpent) || 0) - (parseFloat(userProfile.amountPaid) || 0);
           localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
         }
 
