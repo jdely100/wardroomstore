@@ -34,16 +34,15 @@
       position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10;
     }
 
-    /* FIXED: Catalog structural container layout updated to properly manage sticky children components */
-    .catalog-side { flex: 2.2; padding: 0 32px 32px 32px; overflow-y: auto; box-sizing: border-box; }
+    /* RESTORED: Original roomy catalog container proportions with clear vertical scrolling */
+    .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; }
     
-    /* FIXED: Combined header and filter zones into a single sticky anchor layout stack */
-    .sticky-header-wrapper {
-      position: sticky; top: 0; background-color: var(--bg); z-index: 20;
-      padding-top: 32px; margin-bottom: 28px;
+    /* RESTORED: Section header layout back to separate element positioning */
+    .section-header { 
+      position: sticky; top: -32px; background-color: var(--bg); z-index: 21;
+      padding-top: 32px; padding-bottom: 8px; margin-bottom: 0;
+      display: flex; justify-content: space-between; align-items: center; 
     }
-
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
     .nav-action-btn {
@@ -53,9 +52,10 @@
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* FIXED: Cleaned up categories overlay properties so product listings never show through background seams */
+    /* FIXED: Sticky Category Bar locks at top, completely opaque so background items cannot bleed through */
     .category-bar {
-      background-color: var(--bg); display: flex; gap: 8px; padding-bottom: 12px; overflow-x: auto;
+      position: sticky; top: 40px; background-color: var(--bg); z-index: 20;
+      display: flex; gap: 8px; margin-bottom: 28px; padding-top: 12px; padding-bottom: 16px; overflow-x: auto;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .category-bar::-webkit-scrollbar { display: none; }
@@ -97,6 +97,7 @@
     .product-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
     .product-price { color: var(--accent); font-weight: bold; font-size: 15px; }
     
+    /* RESTORED: Full-scale sidebar panel mapping with independent item scrolling tracking */
     .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .receipt-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
     
@@ -162,16 +163,6 @@
     .ledger-label { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
     .ledger-val { font-size: 16px; font-weight: 800; color: var(--primary); }
 
-    .hub-menu-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
-    .hub-btn {
-      background: #f8fafc; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
-      padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left;
-      display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;
-    }
-    .hub-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .hub-btn:active { transform: scale(0.98); }
-    .hub-arrow { color: var(--text-muted); font-size: 18px; font-weight: bold; }
-
     .suggestion-textarea {
       width: 100%; height: 120px; padding: 14px; font-size: 16px; border: 2px solid var(--border);
       border-radius: 14px; box-sizing: border-box; resize: none; background: #f8fafc; font-family: inherit; margin-bottom: 16px;
@@ -231,17 +222,15 @@
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
   <div class="catalog-side">
-    <!-- FIXED: Grouped store title header and scroll parameters inside a shared sticky component shell wrapper -->
-    <div class="sticky-header-wrapper">
-      <div class="section-header">
-        <h2>30th Company Wardroom Store</h2>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
-        </div>
+    <!-- RESTORED: Distinct layout headers with flat DOM spacing map profiles -->
+    <div class="section-header">
+      <h2>30th Company Wardroom Store</h2>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
       </div>
-      <div class="category-bar" id="category-tabs-container"></div>
     </div>
     
+    <div class="category-bar" id="category-tabs-container"></div>
     <div class="grid" id="catalog"></div>
   </div>
 
