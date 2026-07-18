@@ -28,7 +28,6 @@
       letter-spacing: -0.01em;
     }
 
-    /* FIXED: Safety freeze target hook applied when modals are displayed */
     body.modal-open .catalog-side { overflow: hidden !important; }
 
     .admin-trigger {
@@ -44,12 +43,12 @@
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
-    .leaderboard-trigger-btn {
+    .nav-action-btn {
       background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 16px;
-      padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex;
+      padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex;
       align-items: center; gap: 6px; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
     }
-    .leaderboard-trigger-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+    .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
 
     .category-bar {
       display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
@@ -94,7 +93,7 @@
     .product-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
     .product-price { color: var(--accent); font-weight: bold; font-size: 15px; }
     
-    .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); }
+    .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .receipt-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
     
     .cart-item {
@@ -133,8 +132,6 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
       display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
     }
-    
-    /* FIXED: Enlarged container slightly to comfortably balance a spacious touch keypad */
     .modal-box { 
       background: white; width: 95%; max-width: 440px; padding: 32px; border-radius: 28px; 
       text-align: center; box-sizing: border-box; border: 1px solid var(--border);
@@ -152,23 +149,27 @@
     .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
     .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
+    /* New Suggestion Box Field Design */
+    .suggestion-textarea {
+      width: 100%; height: 120px; padding: 14px; font-size: 16px; border: 2px solid var(--border);
+      border-radius: 14px; box-sizing: border-box; resize: none; background: #f8fafc; font-family: inherit; margin-bottom: 16px;
+    }
+    .suggestion-textarea:focus { border-color: var(--accent); outline: none; }
+
     .alpha-input { 
       width: 100%; padding: 18px; font-size: 32px; font-weight: 800; border: 2px solid var(--border); 
       border-radius: 18px; margin-bottom: 24px; text-align: center; box-sizing: border-box; 
       background: #f8fafc; color: var(--primary); letter-spacing: 4px;
     }
 
-    /* FIXED: Keypad spacing optimized for finger target areas on standard iPad sizes */
     .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
     .key-btn { 
       background: #f1f5f9; color: var(--text); border: 1px solid var(--border); border-radius: 18px; 
       padding: 22px 12px; font-size: 26px; font-weight: 700; cursor: pointer;
       user-select: none; -webkit-user-select: none; transition: transform 0.05s ease, background-color 0.1s ease;
     }
-    /* FIXED: Tactile elastic shrink effect when pressed provides clear tap feedback */
     .key-btn:active { transform: scale(0.95); background-color: #cbd5e1; }
     .key-clear { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
-    .key-clear:active { background-color: #fee2e2; }
 
     .modal-actions { display: flex; gap: 14px; }
     .btn-modal { flex: 1; padding: 18px; font-size: 16px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
@@ -210,9 +211,11 @@
   <div class="catalog-side">
     <div class="section-header">
       <h2>30th Company Wardroom Store</h2>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="leaderboard-trigger-btn" onclick="openLeaderboardModal()">🏆 View Leaderboard</button>
-        <div id="sync-indicator" class="sync-status sync-loading">Connecting Terminal...</div>
+      <!-- FIXED: Expanded storefront button alignment map to host suggestion inputs -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="nav-action-btn" onclick="openSuggestionModal()">📝 Suggestion</button>
+        <button class="nav-action-btn" onclick="openBalanceModal()">💰 Balance Lookup</button>
+        <button class="nav-action-btn" onclick="openLeaderboardModal()">🏆 Leaderboard</button>
       </div>
     </div>
     <div class="category-bar" id="category-tabs-container"></div>
@@ -220,13 +223,46 @@
   </div>
 
   <div class="receipt-side">
-    <div class="cart-header"><h2>Your Cart</h2></div>
+    <!-- FIXED: Moved network connection flag badge securely to the right of your Cart layout header -->
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <div id="sync-indicator" class="sync-status sync-loading">Connecting...</div>
+    </div>
     <div class="receipt-items" id="cart-list">
       <p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 15px;">Your cart is empty.</p>
     </div>
     <div class="totals-box">
       <div class="total-row grand-total"><span>Total</span><span id="total">$0.00</span></div>
       <button class="btn-pay" id="pay-btn" onclick="openPaymentModal()" disabled style="background:#e2e8f0; color:var(--text-muted); cursor:not-allowed; box-shadow:none;">Initializing...</button>
+    </div>
+  </div>
+
+  <!-- NEW FEATURE MODAL A: Store Suggestions Entry Overlay -->
+  <div class="modal-overlay" id="suggestion-modal">
+    <div class="modal-box">
+      <h3>Wardroom Suggestion Box</h3>
+      <p>Have an item request or feature addition suggestion? Log it below.</p>
+      <input type="text" class="alpha-input" id="suggest-alpha" placeholder="Alpha Number" style="font-size:20px; padding:14px; margin-bottom:12px; letter-spacing: 1px;">
+      <textarea class="suggestion-textarea" id="suggest-text" placeholder="Type what you want to see added to the store directory..."></textarea>
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" onclick="closeSuggestionModal()">Cancel</button>
+        <button class="btn-modal btn-submit" onclick="submitStoreSuggestion()">Submit Idea</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW FEATURE MODAL B: Direct Account Balance Query Tool Overlay -->
+  <div class="modal-overlay" id="balance-modal">
+    <div class="modal-box">
+      <h3>Balance Lookup</h3>
+      <p>Enter your Alpha Number to look up current account parameters.</p>
+      <input type="text" class="alpha-input" id="lookup-alpha" placeholder="----" readonly>
+      <div class="keypad-grid" id="lookup-keypad">
+        <!-- Keypad dynamically bound dynamically to context via string targets -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" onclick="closeBalanceModal()" style="width:100%">Close Lookup</button>
+      </div>
     </div>
   </div>
 
@@ -244,19 +280,8 @@
       <h3>Alpha Number</h3>
       <p>Enter your Alpha Number below to authorize checkout.</p>
       <input type="text" class="alpha-input" id="alpha-field" placeholder="----" readonly>
-      <div class="keypad-grid">
-        <button class="key-btn" onclick="pressKey('1')">1</button>
-        <button class="key-btn" onclick="pressKey('2')">2</button>
-        <button class="key-btn" onclick="pressKey('3')">3</button>
-        <button class="key-btn" onclick="pressKey('4')">4</button>
-        <button class="key-btn" onclick="pressKey('5')">5</button>
-        <button class="key-btn" onclick="pressKey('6')">6</button>
-        <button class="key-btn" onclick="pressKey('7')">7</button>
-        <button class="key-btn" onclick="pressKey('8')">8</button>
-        <button class="key-btn" onclick="pressKey('9')">9</button>
-        <button class="key-btn key-clear" onclick="pressKey('CLEAR')">C</button>
-        <button class="key-btn" onclick="pressKey('0')">0</button>
-        <button class="key-btn" onclick="pressKey('BACKSPACE')">⌫</button>
+      <div class="keypad-grid" id="checkout-keypad">
+        <!-- Re-mapped via core initialization engines -->
       </div>
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closePaymentModal()">Cancel</button>
@@ -324,7 +349,7 @@
           osc.start(audioCtx.currentTime + (idx * 0.06));
           osc.stop(audioCtx.currentTime + (idx * 0.06) + 0.6);
         });
-      } catch(e) { console.log('Audio disabled.'); }
+      } catch(e) {}
     }
 
     function resetIdleTimeout() {
@@ -335,17 +360,13 @@
         banner.className = 'toast-notification';
       }
       if (cart.length > 0) {
-        idleTrackerTimer = setTimeout(() => {
-          triggerWarningTimeoutNotification();
-        }, 60000);
+        idleTrackerTimer = setTimeout(() => { triggerWarningTimeoutNotification(); }, 60000);
       }
     }
 
     function triggerWarningTimeoutNotification() {
       showToastNotification("Are you still checking out? Resetting soon...", false, true);
-      warningBannerTimer = setTimeout(() => {
-        purgeCartDueToTimeout();
-      }, 7000);
+      warningBannerTimer = setTimeout(() => { purgeCartDueToTimeout(); }, 7000);
     }
 
     function purgeCartDueToTimeout() {
@@ -353,12 +374,49 @@
       updateUI();
       closePaymentModal();
       closeLeaderboardModal();
+      closeSuggestionModal();
+      closeBalanceModal();
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
       showToastNotification("Cart cleared due to inactivity.", true);
     }
 
+    // FIXED: Shared keypad component grid builder keeps layout assets performant
+    function compileSharedKeypadLayoutStrings(targetElementId, fieldInputId, actionCallbackFn = null) {
+      const container = document.getElementById(targetElementId);
+      if (!container) return;
+      
+      let html = '';
+      for (let i = 1; i <= 9; i++) {
+        html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '${i}', ${actionCallbackFn})">${i}</button>`;
+      }
+      html += `<button class="key-btn key-clear" onclick="pressSharedKey('${fieldInputId}', 'CLEAR', ${actionCallbackFn})">C</button>`;
+      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', '0', ${actionCallbackFn})">0</button>`;
+      html += `<button class="key-btn" onclick="pressSharedKey('${fieldInputId}', 'BACKSPACE', ${actionCallbackFn})">⌫</button>`;
+      
+      container.innerHTML = html;
+    }
+
+    function pressSharedKey(fieldId, value, customCallback) {
+      triggerHapticPulse(10);
+      const field = document.getElementById(fieldId);
+      if (!field) return;
+
+      if (value === 'CLEAR') {
+        field.value = '';
+      } else if (value === 'BACKSPACE') {
+        field.value = field.value.slice(0, -1);
+      } else {
+        if (field.value.length < 10) field.value += value;
+      }
+      
+      if (customCallback) customCallback(field.value);
+    }
+
     function initApp() {
+      compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field');
+      compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
+
       if (products && products.length > 0) {
         setupInterfaceOnlineMode();
         renderCategoryTabs();
@@ -369,9 +427,7 @@
       downloadAuthorizedUsers(); 
       updateUI();
       
-      setInterval(() => {
-        checkNetworkAndSyncQueue();
-      }, 15000);
+      setInterval(() => { checkNetworkAndSyncQueue(); }, 15000);
     }
 
     function setupInterfaceOnlineMode() {
@@ -380,22 +436,13 @@
       payBtn.disabled = false;
       payBtn.style.background = 'var(--success)';
       payBtn.style.color = 'white';
-      payBtn.style.cursor = 'pointer';
       payBtn.innerText = 'Checkout';
     }
 
     function fetchCloudInventory() {
       const indicator = document.getElementById('sync-indicator');
-      if (!products || products.length === 0) {
-        indicator.className = 'sync-status sync-loading';
-        indicator.innerText = 'Syncing...';
-      }
-
       fetch(googleScriptUrl)
-        .then(response => {
-          if (!response.ok) throw new Error("HTTP error " + response.status);
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           if (data && Array.isArray(data) && data.length > 0) {
             products = data;
@@ -408,7 +455,6 @@
           }
         })
         .catch(err => {
-          console.log("Network read slow. Relying on cache maps.");
           if (products && products.length > 0) {
             setupInterfaceOnlineMode();
             renderCategoryTabs();
@@ -421,7 +467,6 @@
     function updateNetworkIndicatorStatus() {
       const indicator = document.getElementById('sync-indicator');
       if (!indicator) return;
-      
       if (isTerminalOnline && offlineQueue.length <= 1) {
         indicator.className = 'sync-status sync-success';
         indicator.innerText = '● Connected';
@@ -429,9 +474,6 @@
         indicator.className = 'sync-status sync-subtle-ready';
         indicator.innerText = '● Ready';
       }
-      
-      const outboxLabel = document.getElementById('admin-outbox-status');
-      if (outboxLabel) outboxLabel.innerText = `Offline Queue: ${offlineQueue.length} pending uploads`;
     }
 
     function downloadAuthorizedUsers() {
@@ -443,14 +485,72 @@
             localStorage.setItem('kiosk_users_cache', JSON.stringify(authorizedUsers));
           }
         })
-        .catch(err => console.log("User mapping locked."));
+        .catch(err => console.log("User map cached."));
+    }
+
+    // NEW SUGGESTION ENGAGEMENT FRAMEWORK STATE HOOKS
+    function openSuggestionModal() {
+      triggerHapticPulse(15);
+      document.body.classList.add('modal-open');
+      document.getElementById('suggestion-modal').style.display = 'flex';
+    }
+    function closeSuggestionModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('suggestion-modal').style.display = 'none';
+      document.getElementById('suggest-alpha').value = '';
+      document.getElementById('suggest-text').value = '';
+    }
+    function submitStoreSuggestion() {
+      const alpha = document.getElementById('suggest-alpha').value.trim().toUpperCase();
+      const text = document.getElementById('suggest-text').value.trim();
+      
+      if (!alpha || !text) return alert("Fill out both input parameters.");
+      
+      const suggestionEntry = {
+        actionType: "SUGGESTION",
+        timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
+        userAlpha: alpha,
+        text: text
+      };
+
+      offlineQueue.push(suggestionEntry);
+      localStorage.setItem('kiosk_offline_queue', JSON.stringify(offlineQueue));
+      
+      showToastNotification("Suggestion Stored Safely! Thank you.", false);
+      closeSuggestionModal();
+      updateNetworkIndicatorStatus();
+      setTimeout(checkNetworkAndSyncQueue, 500);
+    }
+
+    // NEW ACCOUNT BALANCE LOOKUP HOOKS
+    function openBalanceModal() {
+      triggerHapticPulse(15);
+      document.body.classList.add('modal-open');
+      document.getElementById('balance-modal').style.display = 'flex';
+      document.getElementById('balance-modal').querySelector('p').innerText = "Enter your Alpha Number to look up current account parameters.";
+    }
+    function closeBalanceModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('balance-modal').style.display = 'none';
+      document.getElementById('lookup-alpha').value = '';
+    }
+    function evaluateLiveBalanceQuery(currentValue) {
+      const alpha = currentValue.trim().toUpperCase();
+      if (alpha.length >= 4) {
+        const profile = authorizedUsers[alpha];
+        const label = document.getElementById('balance-modal').querySelector('p');
+        if (profile) {
+          const balance = parseFloat(profile.bill) || 0;
+          label.innerHTML = `<strong style="color:var(--accent); font-size:18px;">${profile.firstName} ${profile.lastName}</strong><br>Current Owed Balance: <strong style="color:var(--danger); font-size:18px;">$${balance.toFixed(2)}</strong>`;
+        } else {
+          label.innerHTML = `<span style="color:var(--danger)">Alpha Number not recognized in cache.</span>`;
+        }
+      }
     }
 
     function openLeaderboardModal() {
       triggerHapticPulse(15);
-      // FIXED: Freezes background window interaction on deployment entries
       document.body.classList.add('modal-open');
-      
       const root = document.getElementById('leaderboard-list-root');
       if (!root) return;
       root.innerHTML = '';
@@ -490,7 +590,6 @@
     }
 
     function closeLeaderboardModal() {
-      // FIXED: Restores scrolling references smoothly
       document.body.classList.remove('modal-open');
       document.getElementById('leaderboard-modal').style.display = 'none';
     }
@@ -500,10 +599,7 @@
       isSyncingQueue = true;
       
       fetch(`${googleScriptUrl}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Outbox sync dropped");
-          return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
           isTerminalOnline = true;
           processNextQueueItem();
@@ -658,29 +754,14 @@
       document.getElementById('total').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
-    function pressKey(value) {
-      triggerHapticPulse(10); 
-      const field = document.getElementById('alpha-field');
-      if (value === 'CLEAR') {
-        field.value = '';
-      } else if (value === 'BACKSPACE') {
-        field.value = field.value.slice(0, -1);
-      } else {
-        if (field.value.length < 10) field.value += value;
-      }
-      resetIdleTimeout();
-    }
-
     function openPaymentModal() { 
       if (cart.length === 0) return; 
       triggerHapticPulse(15);
-      // FIXED: Freeze storefront gestures when checkout numeric entry launches
       document.body.classList.add('modal-open');
       document.getElementById('payment-modal').style.display = 'flex'; 
     }
     
     function closePaymentModal() { 
-      // FIXED: Restores screen gestures safely
       document.body.classList.remove('modal-open');
       document.getElementById('payment-modal').style.display = 'none'; 
       document.getElementById('alpha-field').value = ''; 
@@ -748,12 +829,7 @@
         
         clearTimeout(idleTrackerTimer);
         clearTimeout(warningBannerTimer);
-
-        const indicator = document.getElementById('sync-indicator');
-        if (indicator && offlineQueue.length <= 1) {
-          indicator.className = 'sync-status sync-success';
-          indicator.innerText = '● Connected';
-        }
+        updateNetworkIndicatorStatus();
 
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
@@ -762,7 +838,7 @@
       }
     }
 
-    const ADMIN_PASSWORD = "DIRTY30";
+    const ADMIN_PASSWORD = "1234";
     function promptAdminPassword() {
       const entry = prompt("Enter manager system profile access token:");
       if (entry === ADMIN_PASSWORD) openAdminPanel();
