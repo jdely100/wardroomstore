@@ -34,12 +34,15 @@
       position: absolute; bottom: 0; left: 0; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; z-index: 10;
     }
 
-    .catalog-side { flex: 2.2; padding: 32px; overflow-y: auto; box-sizing: border-box; }
-    .receipt-side { 
-      flex: 0.9; background: var(--panel-bg); display: flex; flex-direction: column; height: 100%; min-width: 340px; 
-      box-shadow: -4px 0 24px rgba(15, 23, 42, 0.04); border-left: 1px solid var(--border); z-index: 2;
-    }
+    /* FIXED: Catalog structural container layout updated to properly manage sticky children components */
+    .catalog-side { flex: 2.2; padding: 0 32px 32px 32px; overflow-y: auto; box-sizing: border-box; }
     
+    /* FIXED: Combined header and filter zones into a single sticky anchor layout stack */
+    .sticky-header-wrapper {
+      position: sticky; top: 0; background-color: var(--bg); z-index: 20;
+      padding-top: 32px; margin-bottom: 28px;
+    }
+
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
     
@@ -50,10 +53,9 @@
     }
     .nav-action-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* FIXED: Sticky Category Bar locks at top of layout frame during scroll events */
+    /* FIXED: Cleaned up categories overlay properties so product listings never show through background seams */
     .category-bar {
-      position: sticky; top: 0; background-color: var(--bg); z-index: 10;
-      display: flex; gap: 8px; margin-bottom: 28px; padding-top: 8px; padding-bottom: 12px; overflow-x: auto;
+      background-color: var(--bg); display: flex; gap: 8px; padding-bottom: 12px; overflow-x: auto;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .category-bar::-webkit-scrollbar { display: none; }
@@ -229,14 +231,17 @@
   <button class="admin-trigger" onclick="promptAdminPassword()"></button>
 
   <div class="catalog-side">
-    <div class="section-header">
-      <h2>30th Company Wardroom Store</h2>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
+    <!-- FIXED: Grouped store title header and scroll parameters inside a shared sticky component shell wrapper -->
+    <div class="sticky-header-wrapper">
+      <div class="section-header">
+        <h2>30th Company Wardroom Store</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="nav-action-btn" onclick="openHubModal()">👤 Customer Center</button>
+        </div>
       </div>
+      <div class="category-bar" id="category-tabs-container"></div>
     </div>
     
-    <div class="category-bar" id="category-tabs-container"></div>
     <div class="grid" id="catalog"></div>
   </div>
 
@@ -539,7 +544,6 @@
         });
     }
 
-    // HUB MODAL METHODS
     function openHubModal() {
       triggerHapticPulse(15);
       downloadAuthorizedUsers();
