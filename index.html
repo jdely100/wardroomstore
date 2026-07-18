@@ -102,7 +102,6 @@
     
     .cart-header { padding: 32px 24px 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     
-    /* MODIFIED: Cleared emoji profile properties */
     .clear-cart-trigger-btn {
       background: transparent; border: 1px solid #fca5a5; color: var(--danger); padding: 6px 12px;
       font-size: 12px; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.1s ease;
@@ -142,75 +141,6 @@
     }
     .btn-pay:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
     .btn-pay:active { transform: translateY(0); }
-
-    .screensaver-splash-view {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b1329;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 10000; cursor: pointer; overflow: hidden; user-select: none; -webkit-user-select: none;
-    }
-    .screensaver-canvas-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events: none; opacity: 0.35; }
-    
-    .drifting-showcase-node {
-      position: absolute; background: white; padding: 10px 14px; border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
-      width: auto; pointer-events: none; transform: translate3d(0,0,0);
-    }
-    .drifting-node-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #f1f5f9; }
-    .drifting-node-meta { text-align: left; }
-    .drifting-node-name { font-size: 13px; font-weight: 700; color: var(--primary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .drifting-node-price { font-size: 12px; font-weight: 800; color: var(--accent); }
-
-    .splash-hero-dialog-card {
-      position: relative; z-index: 2; padding: 44px 54px; background: rgba(255,255,255,0.96);
-      border-radius: 36px; text-align: center; max-width: 580px; width: 85%;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      animation: bounceInSwell 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.15);
-    }
-    .splash-hero-dialog-card h1 { margin: 0 0 12px 0; font-size: 32px; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; line-height: 1.2; }
-    .splash-hero-dialog-card p { margin: 0 0 28px 0; font-size: 16px; font-weight: 500; color: var(--text-muted); }
-    
-    .splash-action-pill {
-      display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: 700; color: white;
-      background: linear-gradient(135deg, var(--accent), #1d4ed8); border-radius: 20px;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); animation: pulseGlowSwell 2s infinite;
-    }
-
-    .toggle-row-setting {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: #f8fafc; border-radius: 12px;
-    }
-    .toggle-switch-input { transform: scale(1.3); cursor: pointer; margin-right: 8px; }
-
-    @keyframes bounceInSwell {
-      0% { transform: scale(0.85); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes pulseGlowSwell {
-      0% { transform: scale(1); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
-      50% { transform: scale(1.03); box-shadow: 0 14px 28px rgba(37, 99, 235, 0.5); }
-      100% { transform: scale(1); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
-    }
-
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
-      display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
-    }
-    .modal-box { 
-      background: white; width: 95%; max-width: 440px; padding: 32px; border-radius: 28px; 
-      text-align: center; box-sizing: border-box; border: 1px solid var(--border);
-      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
-    }
-    .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
-    .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
-    
-    .leaderboard-container { text-align: left; max-height: 320px; overflow-y: auto; margin-bottom: 12px; }
-    .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); background: #fafafa; }
-    .leaderboard-rank { font-weight: 800; font-size: 15px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; background: #f1f5f9; color: var(--text-muted); }
-    .rank-1 .leaderboard-rank { background: #fef08a; color: #a16207; }
-    .rank-2 .leaderboard-rank { background: #e2e8f0; color: #475569; }
-    .rank-3 .leaderboard-rank { background: #ffedd5; color: #c2410c; }
-    .leaderboard-identity { flex: 1; font-weight: 600; font-size: 15px; color: var(--text); }
-    .leaderboard-score { font-weight: 700; font-size: 15px; color: var(--accent); }
 
     .balance-ledger-grid {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; text-align: center;
@@ -256,19 +186,27 @@
     .btn-modal { flex: 1; padding: 18px; font-size: 16px; font-weight: 700; border-radius: 14px; border: none; cursor: pointer; }
     .btn-cancel { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
     .btn-submit { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--overlay); 
+      display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
+    }
+    .modal-box { 
+      background: white; width: 95%; max-width: 440px; padding: 32px; border-radius: 28px; 
+      text-align: center; box-sizing: border-box; border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    }
+    .modal-box h3 { margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
+    .modal-box p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 16px; }
+
+    .admin-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; display: none; flex-direction: column; }
+    .admin-header { background: white; padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .admin-content { flex: 1; display: flex; overflow: hidden; padding: 32px; gap: 32px; box-sizing: border-box; }
+    .admin-column { flex: 1; background: white; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--border); }
+    .log-item { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
   </style>
 </head>
 <body onclick="resetIdleTimeout()" ontouchstart="resetIdleTimeout()">
-
-  <!-- MODIFIED: The Welcome Stage visibility matches initial preference states -->
-  <div class="screensaver-splash-view" id="screensaver-splash" onclick="dismissScreensaverSplash()" style="display:none;">
-    <div class="screensaver-canvas-container" id="screensaver-nodes-canvas"></div>
-    <div class="splash-hero-dialog-card">
-      <h1>Welcome to the<br>30th Company Wardroom Store</h1>
-      <p>Authorized self-checkout terminal for company personnel.</p>
-      <div class="splash-action-pill">Touch Screen to Begin</div>
-    </div>
-  </div>
 
   <div id="toast-banner" class="toast-notification">Transaction Logged!</div>
 
@@ -292,7 +230,6 @@
   <div class="receipt-side">
     <div class="cart-header">
       <h2>Your Cart</h2>
-      <!-- MODIFIED: Stripped out layout emoji characters -->
       <button class="clear-cart-trigger-btn" onclick="openClearCartConfirmationModal()">Clear Cart</button>
     </div>
     <div class="receipt-items" id="cart-list">
@@ -304,7 +241,6 @@
     </div>
   </div>
 
-  <!-- NEW MODAL COMPONENT: Custom Customer Confirmation Overlay Layout -->
   <div class="modal-overlay" id="clear-cart-modal">
     <div class="modal-box">
       <h3>Clear entire cart?</h3>
@@ -355,7 +291,6 @@
   <div class="modal-overlay" id="balance-modal">
     <div class="modal-box">
       <h3>Balance Lookup</h3>
-      <!-- MODIFIED: Removed '6-digit' text labels -->
       <p id="balance-query-feedback">Enter your Alpha Number to view your active account balance.</p>
       <input type="text" class="alpha-input" id="lookup-alpha" placeholder="------" readonly>
       <div class="keypad-grid" id="lookup-keypad"></div>
@@ -376,9 +311,7 @@
 
   <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
-      <!-- MODIFIED: Header text map update -->
       <h3>Enter Alpha</h3>
-      <!-- MODIFIED: Removed '6-digit' descriptors -->
       <p>Enter your Alpha Number below to authorize checkout.</p>
       <input type="text" class="alpha-input" id="alpha-field" placeholder="------" readonly>
       <div class="keypad-grid" id="checkout-keypad"></div>
@@ -396,17 +329,7 @@
     </div>
     <div class="admin-content">
       <div class="admin-column">
-        <h3 style="margin:0 0 16px 0; font-size:18px;">Kiosk Storefront Preferences</h3>
-        
-        <div class="toggle-row-setting">
-          <div>
-            <strong style="font-size:15px; color:var(--primary);">Enable Welcome Screen</strong><br>
-            <small style="color:var(--text-muted);">Launch floating attraction screensaver during periods of store inactivity.</small>
-          </div>
-          <input type="checkbox" id="welcome-screen-toggle-setting" class="toggle-switch-input" onchange="handleWelcomeScreenPreferenceToggle(this)">
-        </div>
-
-        <h3 style="margin:24px 0 8px 0; font-size:18px;">Cloud Synchronizations</h3>
+        <h3 style="margin:0 0 16px 0; font-size:18px;">Cloud Synchronizations</h3>
         <button class="btn-modal btn-submit" style="width:100%; margin-bottom: 12px; padding:14px;" onclick="fetchCloudInventory()">Force Refresh Inventory</button>
         <button class="btn-modal btn-submit" style="width:100%; background: var(--accent); padding:14px;" onclick="downloadAuthorizedUsers()">Fetch New Users DB</button>
         <h3 style="margin-top:32px; margin-bottom:12px; font-size:18px;">Active Storefront Directory</h3>
@@ -439,12 +362,6 @@
     let idleTrackerTimer = null;
     let warningBannerTimer = null;
 
-    let screensaverAnimationId = null;
-    let screensaverNodesArray = [];
-    
-    // FIXED: Changed default value assignment rule parameters to lock welcome screen off initially
-    let isWelcomeScreenEnabledSetting = JSON.parse(localStorage.getItem('kiosk_setting_welcome_enabled')) === true;
-
     function triggerHapticPulse(ms) {
       if (navigator.vibrate) navigator.vibrate(ms);
     }
@@ -471,7 +388,6 @@
       const now = new Date();
       if (now.getHours() === 3 && now.getMinutes() === 0) {
         if (cart.length === 0 && offlineQueue.length === 0) {
-          console.log("Nightly recovery checkpoint reached. Refreshing kiosk subsystems...");
           window.location.reload();
         }
       }
@@ -486,7 +402,7 @@
         banner.className = 'toast-notification';
       }
       
-      if (document.getElementById('screensaver-splash').style.display !== 'flex') {
+      if (cart.length > 0) {
         idleTrackerTimer = setTimeout(() => {
           triggerWarningTimeoutNotification();
         }, 53000); 
@@ -497,8 +413,6 @@
       if (cart.length > 0) {
         showToastNotification("Are you still checking out? Resetting soon...", false, true);
         warningBannerTimer = setTimeout(() => { purgeCartDueToTimeout(); }, 7000);
-      } else {
-        activateScreensaverSplashMode();
       }
     }
 
@@ -513,110 +427,27 @@
       closeClearCartConfirmationModal();
       const banner = document.getElementById('toast-banner');
       if (banner) banner.className = 'toast-notification';
-      activateScreensaverSplashMode();
+      showToastNotification("Kiosk reset due to inactivity.", true);
     }
 
-    // FIXED: Non-blocking embedded custom element layout handles for clear cart confirmation events
     function openClearCartConfirmationModal() {
       if (cart.length === 0) return;
       triggerHapticPulse(15);
       document.body.classList.add('modal-open');
       document.getElementById('clear-cart-modal').style.display = 'flex';
     }
+    
     function closeClearCartConfirmationModal() {
       document.body.classList.remove('modal-open');
       document.getElementById('clear-cart-modal').style.display = 'none';
       resetIdleTimeout();
     }
+    
     function executeConfirmedCartPurge() {
       cart = [];
       updateUI();
-      // MODIFIED: Changed alert notification string hook matches to 'Cart Clear'
       showToastNotification("Cart Clear", false);
       closeClearCartConfirmationModal();
-    }
-
-    function handleWelcomeScreenPreferenceToggle(checkboxElement) {
-      isWelcomeScreenEnabledSetting = checkboxElement.checked;
-      localStorage.setItem('kiosk_setting_welcome_enabled', JSON.stringify(isWelcomeScreenEnabledSetting));
-      if (!isWelcomeScreenEnabledSetting) {
-        document.getElementById('screensaver-splash').style.display = 'none';
-        cancelAnimationFrame(screensaverAnimationId);
-      }
-    }
-
-    function activateScreensaverSplashMode() {
-      if (!isWelcomeScreenEnabledSetting) return;
-
-      cart = [];
-      updateUI();
-      closePaymentModal();
-      closeBalanceModal();
-      closeSuggestionModal();
-      closeLeaderboardModal();
-      closeHubModal();
-      closeClearCartConfirmationModal();
-      
-      const splashOverlay = document.getElementById('screensaver-splash');
-      const canvas = document.getElementById('screensaver-nodes-canvas');
-      if (!splashOverlay || !canvas) return;
-
-      canvas.innerHTML = '';
-      screensaverNodesArray = [];
-      splashOverlay.style.display = 'flex';
-      
-      const usableSamplePool = products.filter(p => p && p.name).sort(() => 0.5 - Math.random()).slice(0, 12);
-      
-      usableSamplePool.forEach(prod => {
-        const node = document.createElement('div');
-        node.className = 'drifting-showcase-node';
-        
-        let imgTag = prod.imgUrl ? `<img class="drifting-node-img" src="${prod.imgUrl}" onerror="this.style.display='none';">` : '';
-        node.innerHTML = `
-          ${imgTag}
-          <div class="drifting-node-meta">
-            <div class="drifting-node-name">${prod.name}</div>
-            <div class="drifting-node-price">$${(prod.price || 0).toFixed(2)}</div>
-          </div>
-        `;
-        
-        canvas.appendChild(node);
-        
-        screensaverNodesArray.push({
-          element: node,
-          x: Math.random() * (window.innerWidth - 220),
-          y: Math.random() * (window.innerHeight - 80),
-          dx: (Math.random() - 0.5) * 1.2, 
-          dy: (Math.random() - 0.5) * 1.2, 
-          width: 220,
-          height: 70
-        });
-      });
-
-      cancelAnimationFrame(screensaverAnimationId);
-      executeScreensaverKinematicFrameLoop();
-    }
-
-    function executeScreensaverKinematicFrameLoop() {
-      if (!isWelcomeScreenEnabledSetting) return;
-      screensaverNodesArray.forEach(node => {
-        node.x += node.dx;
-        node.y += node.dy;
-
-        if (node.x <= 0 || node.x + node.width >= window.innerWidth) node.dx *= -1;
-        if (node.y <= 0 || node.y + node.height >= window.innerHeight) node.dy *= -1;
-
-        node.element.style.transform = `translate3d(${node.x}px, ${node.y}px, 0px)`;
-      });
-
-      screensaverAnimationId = requestAnimationFrame(executeScreensaverKinematicFrameLoop);
-    }
-
-    function dismissScreensaverSplash() {
-      triggerHapticPulse(15);
-      cancelAnimationFrame(screensaverAnimationId);
-      document.getElementById('screensaver-splash').style.display = 'none';
-      resetIdleTimeout();
     }
 
     function compileSharedKeypadLayoutStrings(targetElementId, fieldInputId, actionCallbackFnName) {
@@ -653,24 +484,13 @@
     }
 
     function initApp() {
-      document.getElementById('welcome-screen-toggle-setting').checked = isWelcomeScreenEnabledSetting;
-
       compileSharedKeypadLayoutStrings('checkout-keypad', 'alpha-field', '');
-      compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveLiveBalanceQuery');
+      compileSharedKeypadLayoutStrings('lookup-keypad', 'lookup-alpha', 'evaluateLiveBalanceQuery');
 
       if (products && products.length > 0) {
         setupInterfaceOnlineMode();
         renderCategoryTabs();
         renderCatalog();
-        
-        // FIXED: Only auto-fire screensaver if preference maps explicitly allow it
-        if (isWelcomeScreenEnabledSetting) {
-          activateScreensaverSplashMode();
-        } else {
-          document.getElementById('screensaver-splash').style.display = 'none';
-        }
-      } else {
-        document.getElementById('screensaver-splash').style.display = 'none';
       }
       
       fetchCloudInventory();
@@ -706,10 +526,6 @@
             setupInterfaceOnlineMode();
             renderCategoryTabs();
             renderCatalog();
-            
-            if (isWelcomeScreenEnabledSetting && document.getElementById('screensaver-splash').style.display === 'flex') {
-              activateScreensaverSplashMode();
-            }
           }
         })
         .catch(err => {
@@ -721,6 +537,10 @@
           }
         });
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      initApp();
+    });
 
     function updateNetworkIndicatorStatus() {
       const indicator = document.getElementById('sync-indicator');
@@ -1090,6 +910,10 @@
       document.getElementById('alpha-field').value = ''; 
     }
 
+    style = document.createElement('style');
+    style.innerHTML = '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }';
+    document.head.appendChild(style);
+
     function showToastNotification(message, isError = false, isWarning = false) {
       const toast = document.getElementById('toast-banner');
       toast.innerText = message;
@@ -1154,10 +978,6 @@
         clearTimeout(warningBannerTimer);
         updateNetworkIndicatorStatus();
 
-        setTimeout(() => {
-          activateScreensaverSplashMode();
-        }, 1500);
-
         setTimeout(checkNetworkAndSyncQueue, 4000);
       } else {
         triggerHapticPulse([100, 50, 100]); 
@@ -1165,7 +985,6 @@
       }
     }
 
-    // FIXED: Operational password re-assigned to 'DIRTY30'
     const ADMIN_PASSWORD = "DIRTY30";
     function promptAdminPassword() {
       const entry = prompt("Enter manager system access pin:");
